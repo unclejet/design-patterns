@@ -2,8 +2,6 @@ package com.uj.study.creationmethod;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 /**
  * @author ：unclejet
  * @date ：Created in 2020/9/1 上午7:56
@@ -18,7 +16,9 @@ class CapitalCalculationTests {
 
     public void testTermLoanNoPayments() {
 //      ...
-        Loan termLoan = new Loan(commitment, riskRating, maturity);
+        Loan termLoan = Loan.createTermLoan(commitment, riskRating, maturity);
+                
 //      ...
     }
+
 }

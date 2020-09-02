@@ -21,21 +21,21 @@ public class Loan {
 //        this(commitment, 0.00, riskRating, maturity, null);
 //    }
 
-    public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
-        this(commitment, 0.00, riskRating, maturity, expiry);
-    }
+//    public Loan(double commitment, int riskRating, Date maturity, Date expiry) {
+//        this(commitment, 0.00, riskRating, maturity, expiry);
+//    }
 
-    public Loan(double commitment, double outstanding,
-                int customerRating, Date maturity, Date expiry) {
-        this(null, commitment, outstanding, customerRating, maturity, expiry);
-    }
+//    public Loan(double commitment, double outstanding,
+//                int customerRating, Date maturity, Date expiry) {
+//        this(null, commitment, outstanding, customerRating, maturity, expiry);
+//    }
 
-    public Loan(CapitalStrategy capitalStrategy, double commitment,
-                int riskRating, Date maturity, Date expiry) {
-        this(capitalStrategy, commitment, 0.00, riskRating, maturity, expiry);
-    }
+//    public Loan(CapitalStrategy capitalStrategy, double commitment,
+//                int riskRating, Date maturity, Date expiry) {
+//        this(capitalStrategy, commitment, 0.00, riskRating, maturity, expiry);
+//    }
 
-    public Loan(CapitalStrategy capitalStrategy, double commitment,
+    private Loan(CapitalStrategy capitalStrategy, double commitment,
                 double outstanding, int riskRating,
                 Date maturity, Date expiry) {
         this.commitment = commitment;
@@ -56,6 +56,10 @@ public class Loan {
     }
 
     public static Loan createTermLoan(double commitment, int riskRating, Date maturity) {
-        return new Loan(commitment, 0.00, riskRating, maturity, null);
+        return new Loan(null, commitment, 0.00, riskRating, maturity, null);
+    }
+
+    public static Loan createRiskTermLoan(CapitalStrategy riskAdjustedCapitalStrategy, double commitment, int outstanding, int riskRating, Date maturity) {
+        return new Loan(riskAdjustedCapitalStrategy, commitment, 0.00, riskRating, maturity, maturity);
     }
 }

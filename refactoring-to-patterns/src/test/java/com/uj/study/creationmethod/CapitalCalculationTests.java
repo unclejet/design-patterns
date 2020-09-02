@@ -13,11 +13,19 @@ class CapitalCalculationTests {
     private double commitment;
     private int riskRating;
     private Date maturity;
+    private CapitalStrategy riskAdjustedCapitalStrategy;
+    private int outstanding;
 
     public void testTermLoanNoPayments() {
 //      ...
         Loan termLoan = Loan.createTermLoan(commitment, riskRating, maturity);
                 
+//      ...
+    }
+
+    public void testTermLoanWithRiskAdjustedCapitalStrategy() {
+//      ...
+        Loan termLoan = Loan.createRiskTermLoan(riskAdjustedCapitalStrategy, commitment, outstanding, riskRating, maturity);
 //      ...
     }
 

@@ -46,3 +46,16 @@ Loan.createTermLoan(commitment, riskRating, maturity);
    }
    
 # step2
+2. Next, I find all callers on the constructor that createTermLoan calls, and I update them to call createTermLoan.
+public class CapitalCalculationTest...
+   public void testTermLoanOnePayment() {
+      ...
+      
+
+Loan termLoan = new Loan(commitment, riskRating, maturity);
+      
+Loan termLoan = Loan.createTermLoan(commitment, riskRating, maturity);
+      ...
+   }
+
+Once again, I compile and test to confirm that everything is working.

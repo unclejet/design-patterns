@@ -99,3 +99,58 @@ AttributeDescriptor.forInteger(...));
    ...
 
 I compile and test to confirm that everything works as expected.
+
+2. Next, I search for all other callers to the DefaultDescriptor constructor that produce an AttributeDescriptor for an Integer, and I update them to call the new creation method:
+
+protected List createAttributeDescriptors() {
+   List result = new ArrayList();
+   result.add(AttributeDescriptor.forInteger("remoteId", getClass()));
+   ...
+   result.add(
+AttributeDescriptor.forInteger("optimisticLockVersion", getClass()));
+   return result;
+}
+
+I compile and test. Everything is working.
+
+3. Now I repeat steps 1 and 2 as I continue to produce creation methods for the remaining kinds of instances that the DefaultDescriptor constructor can create. This leads to two more creation methods:
+
+public abstract class AttributeDescriptor {
+   public static AttributeDescriptor forInteger(...) {
+      return new DefaultDescriptor(...);
+   }
+
+   
+public static AttributeDescriptor forDate(...) {
+      
+return new DefaultDescriptor(...);
+   
+}
+
+   
+public static AttributeDescriptor forString(...) {
+      
+return new DefaultDescriptor(...);
+   
+}
+
+
+4. I now declare the DefaultDescriptor constructor protected:
+
+public class DefaultDescriptor extends AttributeDescriptor {
+   
+protected DefaultDescriptor(...) {
+      super(...);
+   }
+
+I compile and everything goes according to plan.
+
+5. I repeat steps 1–4 for the other AttributeDescriptor subclasses. When I'm done, the new code
+
+Gives access to AttributeDescriptor subclasses via their superclass.
+
+Ensures that clients obtain subclass instances via the AttributeDescriptor interface.
+
+Prevents clients from directly instantiating AttributeDescriptor subclasses.
+
+Communicates to other programmers that AttributeDescriptor subclasses aren't meant to be public. Clients interact with subclass instances via their common interface.

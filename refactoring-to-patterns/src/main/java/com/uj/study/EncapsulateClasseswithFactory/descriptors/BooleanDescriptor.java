@@ -8,7 +8,7 @@ package com.uj.study.EncapsulateClasseswithFactory.descriptors;
  * @version:
  */
 public class BooleanDescriptor extends AttributeDescriptor {
-    public BooleanDescriptor(String description, Object aClass, Object type) {
+    protected BooleanDescriptor(String description, Object aClass, Object type) {
         super(description, aClass, type);
     }
 }

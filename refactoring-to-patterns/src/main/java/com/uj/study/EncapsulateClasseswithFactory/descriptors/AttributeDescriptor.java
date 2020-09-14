@@ -21,15 +21,15 @@ public abstract class AttributeDescriptor {
         //...
     }
 
-    public static DefaultDescriptor forInteger(String description, Object aClass) {
+    public static AttributeDescriptor forInteger(String description, Object aClass) {
         return new DefaultDescriptor(description, aClass, Integer.TYPE);
     }
 
-    public static DefaultDescriptor forDate(String description, Object aClass) {
+    public static AttributeDescriptor forDate(String description, Object aClass) {
         return new DefaultDescriptor(description, aClass, Date.class);
     }
 
-    public static ReferenceDescriptor forUser(String description, Object aClass) {
+    public static AttributeDescriptor forUser(String description, Object aClass) {
         return new ReferenceDescriptor(description, aClass, User.class, RemoteUser.class);
     }
 }

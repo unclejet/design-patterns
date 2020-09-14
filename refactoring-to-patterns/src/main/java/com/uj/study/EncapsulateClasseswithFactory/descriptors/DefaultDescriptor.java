@@ -10,7 +10,7 @@ import com.uj.study.EncapsulateClasseswithFactory.client.DescriptorClient;
  * @version:
  */
 public class DefaultDescriptor extends AttributeDescriptor {
-    public DefaultDescriptor(String description, Object aClass, Object type) {
+    protected DefaultDescriptor(String description, Object aClass, Object type) {
         super(description, aClass, type);
 
     }

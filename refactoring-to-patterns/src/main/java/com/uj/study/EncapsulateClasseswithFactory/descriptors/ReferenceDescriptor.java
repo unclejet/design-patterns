@@ -8,7 +8,7 @@ package com.uj.study.EncapsulateClasseswithFactory.descriptors;
  * @version:
  */
 public class ReferenceDescriptor extends AttributeDescriptor {
-    public ReferenceDescriptor(String description, Object aClass, Object type, Object subType) {
+    protected ReferenceDescriptor(String description, Object aClass, Object type, Object subType) {
         super(description, aClass, type, subType);
     }
 }

@@ -1,5 +1,6 @@
 package com.uj.study.EncapsulateClasseswithFactory.client;
 
+import com.uj.study.EncapsulateClasseswithFactory.descriptors.AttributeDescriptor;
 import com.uj.study.EncapsulateClasseswithFactory.descriptors.DefaultDescriptor;
 import com.uj.study.EncapsulateClasseswithFactory.descriptors.ReferenceDescriptor;
 import com.uj.study.EncapsulateClasseswithFactory.user.RemoteUser;
@@ -19,17 +20,14 @@ import java.util.List;
 public class DescriptorClient {
     protected List createAttributeDescriptors() {
         List result = new ArrayList();
-        result.add(forInteger("remoteId", getClass()));
+        result.add(AttributeDescriptor.forInteger("remoteId", getClass()));
         result.add(new DefaultDescriptor("createdDate", getClass(), Date.class));
         result.add(new DefaultDescriptor("lastChangedDate", getClass(), Date.class));
-        result.add(forInteger("optimisticLockVersion", getClass()));
+        result.add(AttributeDescriptor.forInteger("optimisticLockVersion", getClass()));
 
         result.add(new ReferenceDescriptor("createdBy", getClass(), User.class, RemoteUser.class));
         result.add(new ReferenceDescriptor("lastChangedBy", getClass(), User.class, RemoteUser.class));
         return result;
     }
 
-    private static DefaultDescriptor forInteger(String description, Object aClass) {
-        return new DefaultDescriptor(description, aClass, Integer.TYPE);
-    }
 }

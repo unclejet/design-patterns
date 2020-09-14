@@ -16,4 +16,7 @@ public abstract class AttributeDescriptor {
         //...
     }
 
+    public static DefaultDescriptor forInteger(String description, Object aClass) {
+        return new DefaultDescriptor(description, aClass, Integer.TYPE);
+    }
 }

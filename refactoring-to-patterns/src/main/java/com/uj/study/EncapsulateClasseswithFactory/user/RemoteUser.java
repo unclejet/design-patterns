@@ -7,5 +7,5 @@ package com.uj.study.EncapsulateClasseswithFactory.user;
  * @modified By：
  * @version:
  */
-public class RemoteUser {
+public class RemoteUser extends User {
 }

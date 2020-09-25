@@ -14,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 class DOMBuilderTest {
     private OutputBuilder builder;
 
+    protected OutputBuilder createBuilder(String rootName) {
+
+        return new DOMBuilder(rootName);
+
+    }
+
     @Test
     public void testAddAboveRoot() {
         String invalidResult =
@@ -23,8 +29,7 @@ class DOMBuilderTest {
                         "</orders>" +
                         "<customer>" +
                         "</customer>";
-        builder =
-                new DOMBuilder("orders");  // used to be new XMLBuilder("orders")
+        builder = createBuilder("orders");  // used to be new XMLBuilder("orders")
         builder.addBelow("order");
         try {
             builder.addAbove("customer");

@@ -14,6 +14,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class XMLBuilderTest {
     private OutputBuilder builder;
 
+    protected OutputBuilder createBuilder(String rootName) {
+
+        return new XMLBuilder(rootName);
+
+    }
+
     @Test
     public void testAddAboveRoot() {
         String invalidResult =
@@ -23,8 +29,7 @@ public class XMLBuilderTest {
                         "</orders>" +
                         "<customer>" +
                         "</customer>";
-        builder =
-                new XMLBuilder("orders");
+        builder = createBuilder("orders");
         builder.addBelow("order");
         try {
             builder.addAbove("customer");

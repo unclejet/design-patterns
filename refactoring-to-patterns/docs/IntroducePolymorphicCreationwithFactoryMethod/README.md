@@ -1,0 +1,1 @@
+![Introduce Polymorphic Creation with Factory Method](./Screenshot from 2020-09-15 07-50-32.png)

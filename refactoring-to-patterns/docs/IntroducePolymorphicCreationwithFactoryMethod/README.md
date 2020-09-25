@@ -61,3 +61,90 @@ createBuilder("orders");
   }
 
 I compile and test to make sure the tests still work.
+
+## Step3
+3. I'm now about to modify the superclass of my tests. But that superclass is TestCase, which is part of the JUnit framework. I don't want to modify that superclass, so I apply Extract Superclass [F] to produce AbstractBuilderTest, a new superclass for my test classes:
+
+
+
+public class AbstractBuilderTest extends TestCase {
+
+}
+
+public class XMLBuilderTest 
+extends AbstractBuilderTest...
+
+public class DOMBuilderTest 
+extends AbstractBuilderTest...
+
+## Step4
+4. I can now apply Form Template Method (205). Because the similar method is now identical in XMLBuilderTest and DOMBuilderTest, the Form Template Method mechanics I must follow instruct me to use Pull Up Method [F] on testAddAboveRoot(). Those mechanics first lead me to apply Pull Up Field [F] on the builder field:
+
+public class AbstractBuilderTest extends TestCase {
+  protected OutputBuilder builder;
+}
+
+public class XMLBuilderTest extends AbstractBuilderTest...
+  
+
+private OutputBuilder builder;
+
+public class DOMBuilderTest extends AbstractBuilderTest...
+  
+
+private OutputBuilder builder;
+
+
+Continuing with the Pull Up Method [F] mechanics for testAddAboveRoot(), I now find that I must declare an abstract method on the superclass for any method that is called by testAddAboveRoot() and present in the XMLBuilderTest and DOMBuilderTest. The method, createBuilder(…), is such a method, so I pull up an abstract method declaration of it:
+
+public 
+abstract class AbstractBuilderTest extends TestCase {
+  protected OutputBuilder builder;
+
+  
+protected abstract OutputBuilder createBuilder(String rootName);
+}
+
+I can now proceed with pulling up testAddAboveRoot() to AbstractBuilderTest:
+
+public abstract class AbstractBuilderTest extends TestCase...
+  
+public void testAddAboveRoot() {
+    
+String invalidResult =
+    
+"<orders>" +
+      
+"<order>" +
+      
+"</order>" +
+    
+"</orders>" +
+    
+"<customer>" +
+    
+"</customer>";
+    
+builder = createBuilder("orders");
+    
+builder.addBelow("order");
+    
+try {
+      
+builder.addAbove("customer");
+      
+fail("expecting java.lang.RuntimeException");
+    
+} catch (RuntimeException ignored) {}
+  
+}
+
+
+That step removed testAddAboveRoot() from XMLBuilderTest and DOMBuilderTest. The createBuilder(…) method, which is now declared in AbstractBuilderTest and implemented in XMLBuilderTest and DOMBuilderTest, now implements the Factory Method [DP] pattern.
+
+As always, I compile and test my tests to make sure that they still work.
+
+## other steps
+5. Since there are additional similar methods between XMLBuilderTest and DOMBuilderTest, I repeat steps 1–4 for each similar method.
+
+6. At this point I consider creating a default implementation of createBuilder(…) in AbstractBuilderTest. I would only do this if it would help reduce duplication in the multiple subclass implementations of createBuilder(…). In this case, I don't have such a need because XMLBuilderTest and DOMBuilderTest each instantiate their own kind of OutputBuilder. So that brings me to the end of the refactoring.

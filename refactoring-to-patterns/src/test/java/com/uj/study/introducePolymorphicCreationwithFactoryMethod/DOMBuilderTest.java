@@ -11,30 +11,14 @@ import static org.junit.jupiter.api.Assertions.*;
  * @modified By：
  * @version:
  */
-class DOMBuilderTest {
-    private OutputBuilder builder;
-
+class DOMBuilderTest extends AbstractBuilderTest {
     protected OutputBuilder createBuilder(String rootName) {
-
         return new DOMBuilder(rootName);
-
     }
 
     @Test
     public void testAddAboveRoot() {
-        String invalidResult =
-                "<orders>" +
-                        "<order>" +
-                        "</order>" +
-                        "</orders>" +
-                        "<customer>" +
-                        "</customer>";
-        builder = createBuilder("orders");  // used to be new XMLBuilder("orders")
-        builder.addBelow("order");
-        try {
-            builder.addAbove("customer");
-            fail("expecting java.lang.RuntimeException");
-        } catch (RuntimeException ignored) {}
+        super.testAddAboveRoot();
     }
 
 }

@@ -75,3 +75,297 @@ public class Loan...
    }
 
 The Loan class can be simplified by extracting specific calculation logic into individual strategy classes, one for each loan type. For example, the method weightedAverageDuration() is used only to calculate capital for a term loan.
+
+## step 1
+
+Since the strategy I'd like to create will handle the calculation of a loan's capital, I create a class called CapitalStrategy.
+
+
+
+public class CapitalStrategy {
+
+}
+
+## step 2
+Now I apply Move Method [F] to move the capital() calculation to CapitalStrategy. This step involves leaving a simple version of capital() on Loan, which will delegate to an instance of CapitalStrategy.
+
+The first step is to declare capital() in CapitalStrategy:
+
+public class CapitalStrategy {
+   
+public double capital() {
+     
+return 0.0;
+   
+}
+}
+
+Now I need to copy code from Loan to CapitalStrategy. Of course, this will involve copying the capital() method. The mechanics for Move Method [F] encourage me to move whatever features (data or methods) are used solely by capital(). I begin by copying the capital() method and then see what else I can easily move from Loan to CapitalStrategy. I end up with the following code, which doesn't compile at the moment:
+
+public class CapitalStrategy...
+   
+public double capital() {   // copied from Loan
+      
+if (expiry == null && maturity != null)
+         
+return commitment * duration() * riskFactor();
+      
+if (expiry != null && maturity == null) {
+         
+if (getUnusedPercentage() != 1.0)
+            
+return commitment * getUnusedPercentage() * duration() * riskFactor();
+         
+else
+            
+return (outstandingRiskAmount() * duration() * riskFactor())
+                
++ (unusedRiskAmount() * duration() * unusedRiskFactor());
+      
+}
+      
+return 0.0;
+   
+}
+
+   
+private double riskFactor() {        // moved from Loan
+      
+return RiskFactor.getFactors().forRating(riskRating);
+   
+}
+
+   
+private double unusedRiskFactor() {    // moved from Loan
+      
+return UnusedRiskFactors.getFactors().forRating(riskRating);
+   
+}
+
+
+I find that I cannot move the duration() method from Loan to CapitalStrategy because the weightedAverageDuration() method relies on Loan's payment information. Once I make that payment information accessible to CapitalStrategy, I'll be able to move duration() and its helper methods to CapitalStrategy. I'll do that soon. For now, I need to make the code I copied into CapitalStrategy compile. To do that, I must decide whether to pass a Loan reference as a parameter to capital() and its two helper methods or pass data as parameters to capital(), which it can use and pass to its helper methods. I determine that capital() needs the following information from a Loan instance:
+
+Expiry date
+
+Maturity date
+
+Duration
+
+Commitment amount
+
+Risk rating
+
+Unused percentage
+
+Outstanding risk amount
+
+Unused risk amount
+
+If I can make that list smaller, I could go with a data-passing approach. So I speculate that I could create a LoanRange class to store dates associated with Loan instances (e.g., expiry and maturity dates). I might also be able to group the commitment amount, outstanding risk amount, and unused risk amount into a LoanRisk class or something with a better name.
+
+Yet I quickly abandon these ideas when I realize that I have other methods to move from Loan to CapitalStrategy (such as duration()), which require that I pass even more information (such as payments) to CapitalStrategy. I decide to simply pass a Loan reference to CapitalStrategy and make the necessary changes on Loan to make all the code compile:
+
+public class CapitalStrategy...
+   public double capital(
+Loan loan) {
+      if (
+loan.getExpiry() == null && 
+loan.getMaturity() != null)
+         return 
+loan.getCommitment() * 
+loan.duration() * 
+riskFactorFor(loan);
+      if (
+loan.getExpiry() != null && 
+loan.getMaturity() == null) {
+         if (
+loan.getUnusedPercentage() != 1.0)
+            return 
+loan.getCommitment() * 
+loan.getUnusedPercentage()
+            * 
+loan.duration() * 
+riskFactorFor(loan);
+         else
+            return
+              (
+loan.outstandingRiskAmount() * 
+loan.duration() * 
+riskFactorFor(loan))
+            + (
+loan.unusedRiskAmount() * 
+loan.duration() * 
+unusedRiskFactorFor(loan));
+      }
+      return 0.0;
+   }
+
+   private double riskFactor
+For(Loan loan) {
+      return RiskFactor.getFactors().forRating(
+loan.getRiskRating());
+   }
+
+   private double unusedRiskFactor
+For(Loan loan) {
+      return UnusedRiskFactors.getFactors().forRating(
+loan.getRiskRating());
+   }
+
+The changes I make to Loan all involve creating new methods that make Loan data accessible. Since CapitalStrategy lives in the same package as Loan, I can limit the visibility of this data by using Java's "package protection" feature. I do this by not assigning an explicit visibility (public, private, or protected) to each method:
+
+public class Loan...
+   
+Date getExpiry() {
+      
+return expiry;
+   
+}
+
+   
+Date getMaturity() {
+      
+return maturity;
+   
+}
+
+   
+double getCommitment() {
+      
+return commitment;
+   
+}
+
+   
+double getUnusedPercentage() {
+      
+return unusedPercentage;
+   
+}
+
+   
+
+private double outstandingRiskAmount() {
+      return outstanding;
+   }
+
+   
+
+private double unusedRiskAmount() {
+      return (commitment - outstanding);
+   }
+
+Now all the code in CapitalStrategy compiles. The next step in Move Method [F] is to make Loan delegate to CapitalStrategy for the capital calculation:
+
+public class Loan...
+   public double capital() {
+      
+return new CapitalStrategy().capital(this);
+   }
+
+Now everything compiles. I run my tests, such as the one below, to see that everything still works:
+
+public class CapitalCalculationTests extends TestCase {
+   public void testTermLoanSamePayments() {
+      Date start = november(20, 2003);
+      Date maturity = november(20, 2006);
+      Loan termLoan = Loan.newTermLoan(LOAN_AMOUNT, start, maturity, HIGH_RISK_RATING);
+      termLoan.payment(1000.00, november(20, 2004));
+      termLoan.payment(1000.00, november(20, 2005));
+      termLoan.payment(1000.00, november(20, 2006));
+      assertEquals("duration", 2.0, termLoan.duration(), TWO_DIGIT_PRECISION);
+      assertEquals("capital", 210.00, termLoan.capital(), TWO_DIGIT_PRECISION);
+   }
+
+All the tests pass. I can now focus on moving more functionality related to the capital calculation from Loan to CapitalStrategy. I will spare you the details; they are similar to what I've already shown. When I'm done, CapitalStrategy now looks like this:
+
+public class CapitalStrategy {
+   private static final int MILLIS_PER_DAY = 86400000;
+   private static final int DAYS_PER_YEAR = 365;
+
+   public double capital(Loan loan) {
+      if (loan.getExpiry() == null && loan.getMaturity() != null)
+         return loan.getCommitment() * loan.duration() * riskFactorFor(loan);
+      if (loan.getExpiry() != null && loan.getMaturity() == null) {
+         if (loan.getUnusedPercentage() != 1.0)
+            return loan.getCommitment() * loan.getUnusedPercentage()
+            * loan.duration() * riskFactorFor(loan);
+         else
+            return
+              (loan.outstandingRiskAmount() * loan.duration() * riskFactorFor(loan))
+            + (loan.unusedRiskAmount() * loan.duration() * unusedRiskFactorFor(loan));
+      }
+      return 0.0;
+   }
+
+   private double riskFactorFor(Loan loan) {
+      return RiskFactor.getFactors().forRating(loan.getRiskRating());
+   }
+
+   private double unusedRiskFactorFor(Loan loan) {
+      return UnusedRiskFactors.getFactors().forRating(loan.getRiskRating());
+   }
+
+   public double duration(Loan loan) {
+      if (loan.getExpiry() == null && loan.getMaturity() != null)
+         return weightedAverageDuration(loan);
+      else if (loan.getExpiry() != null && loan.getMaturity() == null)
+         return yearsTo(loan.getExpiry(), loan);
+      return 0.0;
+   }
+
+   private double weightedAverageDuration(Loan loan) {
+      double duration = 0.0;
+      double weightedAverage = 0.0;
+      double sumOfPayments = 0.0;
+      Iterator loanPayments = loan.getPayments().iterator();
+      while (loanPayments.hasNext()) {
+         Payment payment = (Payment)loanPayments.next();
+         sumOfPayments += payment.amount();
+         weightedAverage += yearsTo(payment.date(), loan) * payment.amount();
+      }
+      if (loan.getCommitment() != 0.0)
+         duration = weightedAverage / sumOfPayments;
+      return duration;
+   }
+
+   private double yearsTo(Date endDate, Loan loan) {
+      Date beginDate = (loan.getToday() == null ? loan.getStart() : loan.getToday());
+      return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
+   }
+}
+
+One consequence of performing these changes is that Loan's capital and duration calculations now look like this:
+
+public class Loan...
+   public double capital() {
+      return new CapitalStrategy().capital(this);
+   }
+
+   public double duration() {
+      return new CapitalStrategy().duration(this);
+   }
+
+While I resist the temptation to prematurely optimize the Loan class, I don't ignore an opportunity to remove duplication. In other words, it's time to replace the two occurrences of new CapitalStrategy() with a CapitalStrategy field on Loan:
+
+public class Loan...
+   
+private CapitalStrategy capitalStrategy;
+
+   private Loan(double commitment, double outstanding,
+                 Date start, Date expiry, Date maturity, int riskRating) {
+      
+capitalStrategy = new CapitalStrategy();      ...
+   }
+
+   public double capital() {
+      return 
+capitalStrategy.capital(this);
+   }
+
+   public double duration() {
+      return 
+capitalStrategy.duration(this);
+   }
+
+I've now finished applying Move Method [F].

@@ -1,5 +1,7 @@
 package com.uj.study.replaceConditionalLogicwithStrategy;
 
+import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategy;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -23,37 +25,36 @@ public class Loan {
     private Date today;
     private Risk riskRating;
 
-    public double capital() {
-        if (expiry == null && maturity != null)
-            return commitment * duration() * riskFactor();
-        if (expiry != null && maturity == null) {
-            if (getUnusedPercentage() != 1.0)
-                return commitment * getUnusedPercentage() * duration() * riskFactor();
-            else
-                return (outstandingRiskAmount() * duration() * riskFactor())
-                        + (unusedRiskAmount() * duration() * unusedRiskFactor());
-        }
-        return 0.0;
+    private CapitalStrategy capitalStrategy;
+
+    private Loan(double commitment, double outstanding,
+                 Date start, Date expiry, Date maturity, int riskRating) {
+        //...
+        capitalStrategy = new CapitalStrategy();
     }
 
-    private double getUnusedPercentage() {
+    public static Loan newTermLoan(double loanAmount, Date start, Date maturity, double highRiskRating) {
+        return null;
+    }
+
+    public double capital() {
+        return capitalStrategy.capital(this);
+    }
+
+    public double getUnusedPercentage() {
         return -1;
     }
 
-    private double outstandingRiskAmount() {
+    public double outstandingRiskAmount() {
         return outstanding;
     }
 
-    private double unusedRiskAmount() {
+    public double unusedRiskAmount() {
         return (commitment - outstanding);
     }
 
     public double duration() {
-        if (expiry == null && maturity != null)
-            return weightedAverageDuration();
-        else if (expiry != null && maturity == null)
-            return yearsTo(expiry);
-        return 0.0;
+        return capitalStrategy.duration(this);
     }
 
     private double weightedAverageDuration() {
@@ -77,11 +78,55 @@ public class Loan {
         return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
     }
 
-    private double riskFactor() {
+    public double riskFactor() {
         return RiskFactor.getFactors().forRating(riskRating);
     }
 
-    private double unusedRiskFactor() {
+    public double unusedRiskFactor() {
         return UnusedRiskFactors.getFactors().forRating(riskRating);
+    }
+
+    public void payment(double v, Date from) {
+
+    }
+
+    public static long getMillisPerDay() {
+        return MILLIS_PER_DAY;
+    }
+
+    public static long getDaysPerYear() {
+        return DAYS_PER_YEAR;
+    }
+
+    public Date getExpiry() {
+        return expiry;
+    }
+
+    public Date getMaturity() {
+        return maturity;
+    }
+
+    public double getCommitment() {
+        return commitment;
+    }
+
+    public double getOutstanding() {
+        return outstanding;
+    }
+
+    public ArrayList<Object> getPayments() {
+        return payments;
+    }
+
+    public Date getToday() {
+        return today;
+    }
+
+    public Risk getRiskRating() {
+        return riskRating;
+    }
+
+    public Date getStart() {
+        return today;
     }
 }

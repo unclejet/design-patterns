@@ -16,12 +16,12 @@ public class Loan {
     private static final long MILLIS_PER_DAY = -1;
     private static final long DAYS_PER_YEAR = -1;
     private Date expiry;
-    private Maturity maturity;
+    private Date maturity;
     private double commitment;
     private double outstanding;
     private ArrayList<Object> payments;
     private Date today;
-    private Rating riskRating;
+    private Risk riskRating;
 
     public double capital() {
         if (expiry == null && maturity != null)

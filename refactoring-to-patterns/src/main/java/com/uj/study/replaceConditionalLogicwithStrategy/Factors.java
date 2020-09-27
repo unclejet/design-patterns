@@ -8,7 +8,7 @@ package com.uj.study.replaceConditionalLogicwithStrategy;
  * @version:
  */
 public class Factors {
-    public double forRating(Rating riskRating) {
+    public double forRating(Risk riskRating) {
         return -1;
     }
 }

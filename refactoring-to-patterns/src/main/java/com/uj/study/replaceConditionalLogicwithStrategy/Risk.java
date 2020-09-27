@@ -7,5 +7,5 @@ package com.uj.study.replaceConditionalLogicwithStrategy;
  * @modified By：
  * @version:
  */
-public class Rating {
+public class Risk {
 }

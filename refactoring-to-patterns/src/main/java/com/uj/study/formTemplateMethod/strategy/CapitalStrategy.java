@@ -19,11 +19,15 @@ public abstract class CapitalStrategy {
     private static final int DAYS_PER_YEAR = 365;
 
     public double capital(Loan loan) {
-        return riskAmountFor(loan) *
+        return riskAmountFor(loan) * unusedPercentageFor(loan) *
                 duration(loan) * riskFactorFor(loan);
     }
 
     protected abstract double riskAmountFor(Loan loan);
+
+    protected double unusedPercentageFor(Loan loan) {  // hook method
+        return 1.0;
+    }
 
     public double duration(Loan loan) {
         if (loan.getExpiry() == null && loan.getMaturity() != null)

@@ -13,6 +13,10 @@ import com.uj.study.formTemplateMethod.Loan;
 public class CapitalStrategyAdvisedLine extends CapitalStrategy {
     @Override
     protected double riskAmountFor(Loan loan) {
-        return loan.getCommitment() * loan.getUnusedPercentage();
+        return loan.getCommitment();
     }
+
+    protected double unusedPercentageFor(Loan loan) {
+        return loan.getUnusedPercentage();
+    };
 }

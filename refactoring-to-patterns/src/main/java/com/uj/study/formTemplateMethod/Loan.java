@@ -1,9 +1,10 @@
 package com.uj.study.formTemplateMethod;
 
-import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategy;
-import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyAdvisedLine;
-import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyRevolver;
-import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyTermLoan;
+
+import com.uj.study.formTemplateMethod.strategy.CapitalStrategy;
+import com.uj.study.formTemplateMethod.strategy.CapitalStrategyAdvisedLine;
+import com.uj.study.formTemplateMethod.strategy.CapitalStrategyRevolver;
+import com.uj.study.formTemplateMethod.strategy.CapitalStrategyTermLoan;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -61,10 +62,6 @@ public class Loan {
 
     private void setUnusedPercentage(double v) {
         //...
-    }
-
-    public double capital() {
-        return capitalStrategy.capital(this);
     }
 
     public double getUnusedPercentage() {

@@ -1,6 +1,6 @@
 package com.uj.study.formTemplateMethod.strategy;
 
-import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
+import com.uj.study.formTemplateMethod.Loan;
 
 /**
  * @author ：unclejet
@@ -12,8 +12,16 @@ import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
 public class CapitalStrategyRevolver extends CapitalStrategy {
     @Override
     public double capital(Loan loan) {
-        return (loan.outstandingRiskAmount() * duration(loan) * riskFactorFor(loan))
-                + (loan.unusedRiskAmount() * duration(loan) * unusedRiskFactor(loan));
+        return super.capital(loan) * unusedCapital(loan);
+    }
+
+    @Override
+    protected double riskAmountFor(Loan loan) {
+        return loan.outstandingRiskAmount();
+    }
+
+    public double unusedCapital(Loan loan) {
+        return loan.unusedRiskAmount() * duration(loan) * unusedRiskFactor(loan);
     }
 
     private double unusedRiskFactor(Loan loan) {

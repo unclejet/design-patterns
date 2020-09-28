@@ -1,7 +1,8 @@
 package com.uj.study.formTemplateMethod.strategy;
 
-import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
-import com.uj.study.replaceConditionalLogicwithStrategy.Payment;
+
+import com.uj.study.formTemplateMethod.Loan;
+import com.uj.study.formTemplateMethod.Payment;
 
 import java.util.Iterator;
 
@@ -13,9 +14,9 @@ import java.util.Iterator;
  * @version:
  */
 public class CapitalStrategyTermLoan extends CapitalStrategy {
-
-    public double capital(Loan loan) {
-        return loan.getCommitment() * duration(loan) * riskFactorFor(loan);
+    @Override
+    protected double riskAmountFor(Loan loan) {
+        return loan.getCommitment();
     }
 
     public double duration(Loan loan) {

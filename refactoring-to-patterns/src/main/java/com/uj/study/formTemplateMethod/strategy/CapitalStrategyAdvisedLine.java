@@ -1,6 +1,7 @@
 package com.uj.study.formTemplateMethod.strategy;
 
-import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
+
+import com.uj.study.formTemplateMethod.Loan;
 
 /**
  * @author ：unclejet
@@ -11,8 +12,7 @@ import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
  */
 public class CapitalStrategyAdvisedLine extends CapitalStrategy {
     @Override
-    public double capital(Loan loan) {
-        return loan.getCommitment() * loan.getUnusedPercentage() *
-                duration(loan) * riskFactorFor(loan);
+    protected double riskAmountFor(Loan loan) {
+        return loan.getCommitment() * loan.getUnusedPercentage();
     }
 }

@@ -1,8 +1,8 @@
 package com.uj.study.formTemplateMethod.strategy;
 
-import com.uj.study.replaceConditionalLogicwithStrategy.Loan;
-import com.uj.study.replaceConditionalLogicwithStrategy.Payment;
-import com.uj.study.replaceConditionalLogicwithStrategy.RiskFactor;
+import com.uj.study.formTemplateMethod.Loan;
+import com.uj.study.formTemplateMethod.Payment;
+import com.uj.study.formTemplateMethod.RiskFactor;
 
 import java.util.Date;
 import java.util.Iterator;
@@ -18,7 +18,12 @@ public abstract class CapitalStrategy {
     private static final int MILLIS_PER_DAY = 86400000;
     private static final int DAYS_PER_YEAR = 365;
 
-    public abstract double capital(Loan loan);
+    public double capital(Loan loan) {
+        return riskAmountFor(loan) *
+                duration(loan) * riskFactorFor(loan);
+    }
+
+    protected abstract double riskAmountFor(Loan loan);
 
     public double duration(Loan loan) {
         if (loan.getExpiry() == null && loan.getMaturity() != null)

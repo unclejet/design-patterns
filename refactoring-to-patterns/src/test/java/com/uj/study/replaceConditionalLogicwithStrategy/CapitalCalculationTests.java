@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CapitalCalculationTests {
     private static final double TWO_DIGIT_PRECISION = 0.01;
     private static final double LOAN_AMOUNT = 100;
-    private static final double HIGH_RISK_RATING = 0.5;
+    private static final int HIGH_RISK_RATING = 1;
 
     @Test
     public void testTermLoanSamePayments() {

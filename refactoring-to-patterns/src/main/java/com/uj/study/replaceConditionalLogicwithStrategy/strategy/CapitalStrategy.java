@@ -15,31 +15,11 @@ import java.util.Iterator;
  * @modified By：
  * @version:
  */
-public class CapitalStrategy {
+public abstract class CapitalStrategy {
     private static final int MILLIS_PER_DAY = 86400000;
     private static final int DAYS_PER_YEAR = 365;
 
-    public double capital(Loan loan) {
-        if (loan.getExpiry() == null && loan.getMaturity() != null)
-            return loan.getCommitment() * loan.duration() * riskFactorFor(loan);
-        if (loan.getExpiry() != null && loan.getMaturity() == null) {
-            if (loan.getUnusedPercentage() != 1.0)
-                return loan.getCommitment() * loan.getUnusedPercentage() * loan.duration() * riskFactorFor(loan);
-            else
-                return (loan.outstandingRiskAmount() * loan.duration() * riskFactorFor(loan))
-                        + (loan.unusedRiskAmount() * loan.duration() * unusedRiskFactorFor(loan));
-        }
-        return 0.0;
-    }
-
-    private double riskFactorFor(Loan loan) {        // moved from Loan
-        return RiskFactor.getFactors().forRating(loan.getRiskRating());
-    }
-
-
-    private double unusedRiskFactorFor(Loan loan) {    // moved from Loan
-        return UnusedRiskFactors.getFactors().forRating(loan.getRiskRating());
-    }
+    public abstract double capital(Loan loan);
 
     public double duration(Loan loan) {
         if (loan.getExpiry() == null && loan.getMaturity() != null)
@@ -64,7 +44,11 @@ public class CapitalStrategy {
         return duration;
     }
 
-    private double yearsTo(Date endDate, Loan loan) {
+    protected double riskFactorFor(Loan loan) {        // moved from Loan
+        return RiskFactor.getFactors().forRating(loan.getRiskRating());
+    }
+
+    protected double yearsTo(Date endDate, Loan loan) {
         Date beginDate = (loan.getToday() == null ? loan.getStart() : loan.getToday());
         return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
     }

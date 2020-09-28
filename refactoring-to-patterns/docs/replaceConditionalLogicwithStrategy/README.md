@@ -369,3 +369,155 @@ capitalStrategy.duration(this);
    }
 
 I've now finished applying Move Method [F].
+
+## step 3
+Now I'll apply Extract Parameter (346) to make it possible to set the value of the delegate, which is currently hard-coded. This step will be important when we get to the next step in the refactoring:
+
+public class Loan...
+   private Loan(...,  
+CapitalStrategy capitalStrategy) {
+      ...
+      this.capitalStrategy = capitalStrategy;
+   }
+
+   public static Loan newTermLoan(
+      double commitment, Date start, Date maturity, int riskRating) {
+
+      return new Loan(
+         commitment, commitment, start, null,
+         maturity, riskRating, 
+new CapitalStrategy()
+      );
+   }
+
+   public static Loan newRevolver(
+      double commitment, Date start, Date expiry, int riskRating) {
+
+      return new Loan(commitment, 0, start, expiry,
+         null, riskRating, 
+new CapitalStrategy()
+      );
+   }
+
+   public static Loan newAdvisedLine(
+      double commitment, Date start, Date expiry, int riskRating) {
+      if (riskRating > 3) return null;
+      Loan advisedLine =
+         new Loan(commitment, 0, start, expiry, null, riskRating, 
+new CapitalStrategy());
+      advisedLine.setUnusedPercentage(0.1);
+      return advisedLine;
+   }
+## step 4
+I can now apply Replace Conditional with Polymorphism [F] on CapitalStrategy's capital() method. My first step is to create a subclass for the capital calculation for a term loan. This involves making some methods protected in CapitalStrategy (not shown below) and moving some methods to a new class called CapitalStrategyTermLoan (shown below):
+
+
+
+public class CapitalStrategyTermLoan extends CapitalStrategy {
+   
+public double capital(Loan loan) {
+      
+return loan.getCommitment() * duration(loan) * riskFactorFor(loan);
+   
+}
+
+   
+public double duration(Loan loan) {
+      
+return weightedAverageDuration(loan);
+   
+}
+
+   
+private double weightedAverageDuration(Loan loan) {
+      
+double duration = 0.0;
+      
+double weightedAverage = 0.0;
+      
+double sumOfPayments = 0.0;
+      
+Iterator loanPayments = loan.getPayments().iterator();
+      
+while (loanPayments.hasNext()) {
+         
+Payment payment = (Payment)loanPayments.next();
+         
+sumOfPayments += payment.amount();
+         
+weightedAverage += yearsTo(payment.date(), loan) * payment.amount();
+      
+}
+      
+if (loan.getCommitment() != 0.0)
+         
+duration = weightedAverage / sumOfPayments;
+      
+return duration;
+   
+}
+
+
+To test this class, I must first update Loan as follows:
+
+public class Loan...
+   public static Loan newTermLoan(
+      double commitment, Date start, Date maturity, int riskRating) {
+      return new Loan(
+         commitment, commitment, start, null, maturity, riskRating,
+         
+new CapitalStrategyTermLoan()
+      );
+   }
+
+The tests pass. Now I continue applying Replace Conditional with Polymorphism [F] to produce capital strategies for the other two loan types, revolver and advised line. Here are the changes I make to Loan:
+
+public class Loan...
+   public static Loan newRevolver(
+      double commitment, Date start, Date expiry, int riskRating) {
+      return new Loan(
+         commitment, 0, start, expiry, null, riskRating,
+         
+new CapitalStrategyRevolver()
+      );
+   }
+
+   public static Loan newAdvisedLine(
+      double commitment, Date start, Date expiry, int riskRating) {
+      if (riskRating > 3) return null;
+      Loan advisedLine = new Loan(
+          commitment, 0, start, expiry, null, riskRating,
+          
+new CapitalStrategyAdvisedLine()
+      );
+      advisedLine.setUnusedPercentage(0.1);
+      return advisedLine;
+   }
+
+Here's a look at all of the new strategy classes:
+
+![Introduce Polymorphic Creation with Factory Method](./Screenshot from 2020-09-29 05-36-52.png)
+
+You'll notice that CapitalStrategy is now an abstract class. It now looks like this:
+
+public abstract class CapitalStrategy {
+   private static final int MILLIS_PER_DAY = 86400000;
+   private static final int DAYS_PER_YEAR = 365;
+
+   public abstract double capital(Loan loan);
+
+   protected double riskFactorFor(Loan loan) {
+      return RiskFactor.getFactors().forRating(loan.getRiskRating());
+   }
+
+   public double duration(Loan loan) {
+      return yearsTo(loan.getExpiry(), loan);
+   }
+
+   protected double yearsTo(Date endDate, Loan loan) {
+      Date beginDate = (loan.getToday() == null ? loan.getStart() : loan.getToday());
+      return ((endDate.getTime() - beginDate.getTime()) / MILLIS_PER_DAY) / DAYS_PER_YEAR;
+   }
+}
+
+And that does it for this refactoring. Capital calculations, which include duration calculations, are now performed using several concrete strategies.

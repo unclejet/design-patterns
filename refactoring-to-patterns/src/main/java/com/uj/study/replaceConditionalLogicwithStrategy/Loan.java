@@ -1,6 +1,9 @@
 package com.uj.study.replaceConditionalLogicwithStrategy;
 
 import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategy;
+import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyAdvisedLine;
+import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyRevolver;
+import com.uj.study.replaceConditionalLogicwithStrategy.strategy.CapitalStrategyTermLoan;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -28,13 +31,36 @@ public class Loan {
     private CapitalStrategy capitalStrategy;
 
     private Loan(double commitment, double outstanding,
-                 Date start, Date expiry, Date maturity, int riskRating) {
+                 Date start, Date expiry, Date maturity, int riskRating, CapitalStrategy capitalStrategy) {
         //...
-        capitalStrategy = new CapitalStrategy();
+        this.capitalStrategy = capitalStrategy;
     }
 
-    public static Loan newTermLoan(double loanAmount, Date start, Date maturity, double highRiskRating) {
-        return null;
+    public static Loan newTermLoan(double commitment, Date start, Date maturity, int riskRating) {
+        return new Loan(commitment, commitment, start, null, maturity, riskRating, new CapitalStrategyTermLoan());
+    }
+
+    public static Loan newRevolver(
+            double commitment, Date start, Date expiry, int riskRating) {
+
+        return new Loan(commitment, 0, start, expiry,
+                null, riskRating,
+                new CapitalStrategyRevolver()
+        );
+    }
+
+    public static Loan newAdvisedLine(
+            double commitment, Date start, Date expiry, int riskRating) {
+        if (riskRating > 3) return null;
+        Loan advisedLine =
+                new Loan(commitment, 0, start, expiry, null, riskRating,
+                        new CapitalStrategyAdvisedLine());
+        advisedLine.setUnusedPercentage(0.1);
+        return advisedLine;
+    }
+
+    private void setUnusedPercentage(double v) {
+        //...
     }
 
     public double capital() {

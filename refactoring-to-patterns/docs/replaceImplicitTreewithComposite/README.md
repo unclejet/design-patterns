@@ -138,3 +138,146 @@ Producing the above XML would be difficult and awkward using a single toXML() me
 
 For this shopping system, which generates a lot of diverse XML for the same domain objects, refactoring to Visitor makes a lot of sense. However, at the moment, the creation of the XML is still not simple; you have to get the formatting just right and remember to close every tag. I want to simplify this XML generation prior to refactoring to Visitor. Because the Composite pattern can help simplify the XML generation, I proceed with this refactoring.
 
+## step1
+To identify an implicit leaf, I study fragments of test code, such as this one:
+
+String expectedResult =
+"<orders>" +
+  "<order id='321'>" +
+    "<product id='f1234' color='red' size='medium'>" +
+      "<price currency='USD'>" +
+        "8.95" +
+      "</price>" +
+      "Fire Truck" +
+    "</product>" +
+  "</order>" +
+"</orders>";
+
+Here, I face a decision: Which should I treat as an implicit leaf, the <price>…</price> tag or its value, 8.95? I choose the <price>…</price> tag because I know that the leaf node class I'll create to correspond with the implicit leaf can easily represent the tag's value, 8.95.
+
+Another observation I make is that every XML tag in the implicit tree has a name, an optional number of attributes (name/value pairs), optional children, and an optional value. I ignore the optional children part for the moment (we'll get to that in step 4). This means that I can produce one general leaf node to represent all implicit leaves in the implicit tree. I produce this class, which I call TagNode, using test-driven development. Here's a test I write after already writing and passing some simpler tests:
+
+public class TagTests extends TestCase...
+  
+private static final String SAMPLE_PRICE = "8.95";
+  
+public void testSimpleTagWithOneAttributeAndValue() {
+    
+TagNode priceTag = new TagNode("price");
+    
+priceTag.addAttribute("currency", "USD");
+    
+priceTag.addValue(SAMPLE_PRICE);
+    
+String expected =
+      
+"<price currency=" +
+      
+"'" +
+      
+"USD" +
+      
+"'>" +
+      
+SAMPLE_PRICE +
+      
+"</price>";
+    
+assertEquals("price XML", expected, priceTag.toString());
+  
+}
+
+
+Here's the code to make the test pass:
+
+
+
+public class TagNode {
+  
+private String name = "";
+  
+private String value = "";
+  
+private StringBuffer attributes;
+
+  
+public TagNode(String name) {
+    
+this.name = name;
+    
+attributes = new StringBuffer("");
+  
+}
+
+  
+public void addAttribute(String attribute, String value) {
+    
+attributes.append(" ");
+    
+attributes.append(attribute);
+    
+attributes.append("='");
+    
+attributes.append(value);
+    
+attributes.append("'");
+  
+}
+
+  
+public void addValue(String value) {
+    
+this.value = value;
+  
+}
+
+  
+public String toString() {
+    
+String result;
+    
+result =
+      
+"<" + name + attributes + ">" +
+      
+value +
+      
+"</" + name + ">";
+    
+return result;
+  
+}
+
+## step2
+I can now replace the implicit leaf in the getContents() method with a TagNode instance:
+
+public class OrdersWriter...
+  private void writePriceTo(StringBuffer xml, Product product) {
+    
+TagNode priceNode = new TagNode("price");
+    
+priceNode.addAttribute("currency", currencyFor(product));
+    
+priceNode.addValue(priceFor(product));
+    
+xml.append(priceNode.toString());
+    
+
+xml.append(" currency='");    
+
+xml.append("<price");
+    
+
+xml.append(currencyFor(product));
+    
+
+xml.append("'>");
+    
+
+xml.append(product.getPrice());
+    
+
+xml.append("</price>");
+  }
+
+I compile and run tests to ensure that the implicit tree is still rendered correctly.

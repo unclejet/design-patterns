@@ -1,5 +1,7 @@
 package com.uj.study.replaceImplicitTreewithComposite;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -12,29 +14,20 @@ import static org.junit.jupiter.api.Assertions.*;
 class TagTest {
     private static final String SAMPLE_PRICE = "8.95";
 
+    @Test
     public void testSimpleTagWithOneAttributeAndValue() {
+        TagNode priceTag = new TagNode("price");
+        priceTag.addAttribute("currency", "USD");
+        priceTag.addValue(SAMPLE_PRICE);
 
-//        TagNode priceTag = new TagNode("price");
-//
-//        priceTag.addAttribute("currency", "USD");
-//
-//        priceTag.addValue(SAMPLE_PRICE);
-//
-//        String expected =
-//
-//                "<price currency=" +
-//
-//                        "'" +
-//
-//                        "USD" +
-//
-//                        "'>" +
-//
-//                        SAMPLE_PRICE +
-//
-//                        "</price>";
-//
-//        assertEquals("price XML", expected, priceTag.toString());
+        String expected =
+                "<price currency=" +
+                        "'" +
+                        "USD" +
+                        "'>" +
+                        SAMPLE_PRICE +
+                        "</price>";
+        assertEquals(expected, priceTag.toString());
 
     }
 

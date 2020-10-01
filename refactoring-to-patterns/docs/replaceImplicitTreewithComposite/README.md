@@ -281,3 +281,192 @@ xml.append("</price>");
   }
 
 I compile and run tests to ensure that the implicit tree is still rendered correctly.
+
+## step3-4
+3.Because TagNode models all of the implicit leaves in the XML, I do not need to repeat steps 1 and 2 to convert additional implicit leaves to leaf nodes, nor do I need to ensure that all newly created leaf nodes share a common interface—they already do.
+
+4.Now I identify an implicit parent by studying fragments of test code. I find that a <product> tag is a parent for a <price> tag, an <order> tag is a parent for a <product> tag, and an <orders> tag is a parent for an <order> tag. Yet because each of these implicit parents is already so similar in nature to the implicit leaf identified earlier, I see that I can produce a parent node by adding child-handling support to TagNode. I follow test-driven development to produce this new code. Here's the first test I write:
+
+
+
+public void testCompositeTagOneChild() {
+  
+TagNode productTag = new TagNode("product");
+  
+productTag.add(new TagNode("price"));
+  
+String expected =
+    
+"<product>" +
+      
+"<price>" +
+      
+"</price>" +
+    
+"</product>";
+  
+assertEquals("price XML", expected, productTag.toString());
+
+}
+
+
+And here's code to pass that test:
+
+public class TagNode...
+  
+private List children;
+
+  public String toString() {
+    String result;
+    result = "<" + name + attributes + ">";
+    
+Iterator it = children().iterator();
+    
+while (it.hasNext()) {
+      
+TagNode node = (TagNode)it.next();
+      
+result += node.toString();
+    
+}
+    result += value;
+    result += "</" + name + ">";
+    return result;
+  }
+
+  
+private List children() {
+    
+if (children == null)
+      
+children = new ArrayList();
+    
+return children;
+  
+}
+
+  
+public void add(TagNode child) {
+    
+children().add(child);
+  
+}
+
+
+Here's a slightly more robust test:
+
+
+
+public void testAddingChildrenAndGrandchildren() {
+   
+String expected =
+   
+"<orders>" +
+     
+"<order>" +
+        
+"<product>" +
+        
+"</product>" +
+     
+"</order>" +
+   
+"</orders>";
+   
+TagNode ordersTag = new TagNode("orders");
+   
+TagNode orderTag = new TagNode("order");
+   
+TagNode productTag = new TagNode("product");
+   
+ordersTag.add(orderTag);
+   
+orderTag.add(productTag);
+   
+assertEquals("price XML", expected, ordersTag.toString());
+
+}
+
+
+I continue writing and running tests until I'm satisfied that TagNode can behave as a proper parent node. When I'm done, TagNode is a class that can play all three participants in the Composite pattern:
+
+![R2P](./Screenshot from 2020-10-01 08-26-58.png)
+
+## step5
+Now I replace every occurrence of the implicit parent with code that uses a parent node instance, outfitted with the correct leaf node instance(s). Here's an example:
+
+public class OrdersWriter...
+  private void writeProductsTo(StringBuffer xml, Order order) {
+    for (int j=0; j < order.getProductCount(); j++) {
+      Product product = order.getProduct(j);
+      
+TagNode productTag = new TagNode("product");
+      
+productTag.addAttribute("id", product.getID());
+      
+productTag.addAttribute("color", colorFor(product));
+      if (product.getSize() != ProductSize.NOT_APPLICABLE)
+        
+productTag.addAttribute("size", sizeFor(product));
+      
+writePriceTo(productTag, product);
+      
+productTag.addValue(product.getName());
+      xml.append(
+productTag.toString());
+    }
+  }
+
+  
+private void writePriceTo(TagNode productTag, Product product) {
+    TagNode priceTag = new TagNode("price");
+    priceTag.addAttribute("currency", currencyFor(product));
+    priceTag.addValue(priceFor(product));
+    
+productTag.add(priceTag);
+  }
+
+I compile and run tests to ensure that the implicit tree still renders itself correctly.
+
+## step6
+ I repeat steps 4 and 5 for all remaining implicit parents. This yields the following code, which is identical to the after code in the code sketch on the first page of this refactoring, except that the code is broken up into smaller methods:
+
+public class OrdersWriter...
+  public String getContents() {
+    StringBuffer xml = new StringBuffer();
+    writeOrderTo(xml);
+    return xml.toString();
+  }
+
+  private void writeOrderTo(StringBuffer xml) {
+    TagNode ordersTag = new TagNode("orders");
+    for (int i = 0; i < orders.getOrderCount(); i++) {
+      Order order = orders.getOrder(i);
+      TagNode orderTag = new TagNode("order");
+      orderTag.addAttribute("id", order.getOrderId());
+      writeProductsTo(orderTag, order);
+      ordersTag.add(orderTag);
+    }
+    xml.append(ordersTag.toString());
+  }
+
+  private void writeProductsTo(TagNode orderTag, Order order) {
+    for (int j=0; j < order.getProductCount(); j++) {
+      Product product = order.getProduct(j);
+      TagNode productTag = new TagNode("product");
+      productTag.addAttribute("id", product.getID());
+      productTag.addAttribute("color", colorFor(product));
+      if (product.getSize() != ProductSize.NOT_APPLICABLE)
+        productTag.addAttribute("size", sizeFor(product));
+      writePriceTo(productTag, product);
+      productTag.addValue(product.getName());
+      orderTag.add(productTag);
+    }
+  }
+
+  private void writePriceTo(TagNode productTag, Product product) {
+    TagNode priceNode = new TagNode("price");
+    priceNode.addAttribute("currency", currencyFor(product));
+    priceNode.addValue(priceFor(product));
+    productTag.add(priceNode);
+  }

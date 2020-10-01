@@ -22,72 +22,30 @@ public class OrdersWriter {
 
 
     private void writeOrderTo(StringBuffer xml) {
-
-        xml.append("<orders>");
-
+        TagNode ordersTag = new TagNode("orders");
         for (int i = 0; i < orders.getOrderCount(); i++) {
-
             Order order = orders.getOrder(i);
-
-            xml.append("<order");
-
-            xml.append(" id='");
-
-            xml.append(order.getOrderId());
-
-            xml.append("'>");
-
-            writeProductsTo(xml, order);
-
-            xml.append("</order>");
-
+            TagNode orderTag = new TagNode("order");
+            orderTag.addAttribute("id", order.getOrderId());
+            writeProductsTo(orderTag, order);
+            ordersTag.add(orderTag);
         }
-
-        xml.append("</orders>");
-
+        xml.append(ordersTag.toString());
     }
 
-
-    private void writeProductsTo(StringBuffer xml, Order order) {
-
-        for (int j = 0; j < order.getProductCount(); j++) {
-
+    private void writeProductsTo(TagNode orderTag, Order order) {
+        for (int j=0; j < order.getProductCount(); j++) {
             Product product = order.getProduct(j);
+            TagNode productTag = new TagNode("product");
+            productTag.addAttribute("id", product.getId());
+            productTag.addAttribute("color", colorFor(product));
+            if (product.getSize() != ProductSize.NOT_APPLICABLE)
+                productTag.addAttribute("size", sizeFor(product));
 
-            xml.append("<product");
-
-            xml.append(" id='");
-
-            xml.append(product.getId());
-
-            xml.append("'");
-
-            xml.append(" color='");
-
-            xml.append(colorFor(product));
-
-            xml.append("'");
-
-            if (product.getSize() != ProductSize.NOT_APPLICABLE) {
-
-                xml.append(" size='");
-
-                xml.append(sizeFor(product));
-
-                xml.append("'");
-
-            }
-
-            xml.append(">");
-
-            writePriceTo(xml, product);
-
-            xml.append(product.getName());
-
-            xml.append("</product>");
-
+            writePriceTo(productTag, product);
+            productTag.addValue(product.getName());
+            orderTag.add(productTag);
         }
-
     }
 
     private String sizeFor(Product product) {
@@ -99,11 +57,12 @@ public class OrdersWriter {
     }
 
 
-    private void writePriceTo(StringBuffer xml, Product product) {
-        TagNode priceNode = new TagNode("price");
-        priceNode.addAttribute("currency", currencyFor(product));
-        priceNode.addValue(priceFor(product));
-        xml.append(priceNode.toString());
+    private void writePriceTo(TagNode productTag, Product product) {
+        TagNode priceTag = new TagNode("price");
+        priceTag.addAttribute("currency", currencyFor(product));
+        priceTag.addValue(priceFor(product));
+
+        productTag.add(priceTag);
     }
 
     private String priceFor(Product product) {

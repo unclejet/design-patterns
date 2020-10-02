@@ -431,3 +431,148 @@ throw new RuntimeException("missing parent tag: " + parentTagName);
 parentNode, childTagName);
   }
   
+## step 3-4
+Now I make TagBuilder capable of adding attributes and values to nodes. This is an easy step because the encapsulated TagNode already handles attributes and values. Here's a test that checks to see whether both attributes and values are handled correctly:
+
+public class TagBuilderTest...
+  
+public void testAttributesAndValues() {
+    
+String expectedXml =
+      
+"<flavor name='Test-Driven Development'>" +     
+ 
+tag with attribute
+        
+"<requirements>" +
+          
+"<requirement type='hardware'>" +
+              
+"1 computer for every 2 participants" +  
+ 
+tag with value
+            
+"</requirement>" +
+          
+"<requirement type='software'>" +
+              
+"IDE" +
+
+          
+"</requirement>" +
+        
+"</requirements>" +
+      
+"</flavor>";
+    
+TagBuilder builder = new TagBuilder("flavor");
+    
+builder.addAttribute("name", "Test-Driven Development");
+      
+builder.addChild("requirements");
+        
+builder.addToParent("requirements", "requirement");
+        
+builder.addAttribute("type", "hardware");
+        
+builder.addValue("1 computer for every 2 participants");
+        
+builder.addToParent("requirements", "requirement");
+        
+builder.addAttribute("type", "software");
+        
+builder.addValue("IDE");
+
+    
+assertXmlEquals(expectedXml, builder.toXml());
+  
+}
+
+
+The following new methods make the test pass:
+
+public class TagBuilder...
+  
+public void addAttribute(String name, String value) {
+    
+currentNode.addAttribute(name, value);
+  
+}
+
+  
+public void addValue(String value) {
+    
+currentNode.addValue(value);
+  
+}
+
+
+4. Now it's time to reflect on how simple TagBuilder is and how easy it is for clients to use. Is there a simpler way to produce XML? This is not the kind of question you can normally answer right away. Experiments and hours, days, or weeks of reflection can sometimes yield a simpler idea. I'll discuss a simpler implementation in the Variations section below. For now, I move on to the last step.
+
+## step5
+ I conclude the refactoring by replacing Composite-construction code with code that uses the TagBuilder. I'm not aware of any easy way to do this; Composite-construction code can span large parts of a system. Hopefully you have test code to catch you if you make any mistakes during the transformation. Here's a method on a class called CatalogWriter that must be changed from using TagNode to using TagBuilder:
+
+public class CatalogWriter...
+  public String catalogXmlFor(Activity activity) {
+    TagNode activityTag = new TagNode("activity");
+    ...
+    TagNode flavorsTag = new TagNode("flavors");
+    activityTag.add(flavorsTag);
+    for (int i=0; i < activity.getFlavorCount(); i++) {
+      TagNode flavorTag = new TagNode("flavor");
+      flavorsTag.add(flavorTag);
+      Flavor flavor = activity.getFlavor(i);
+      ...
+      int requirementsCount = flavor.getRequirements().length;
+      if (requirementsCount > 0) {
+        TagNode requirementsTag = new TagNode("requirements");
+        flavorTag.add(requirementsTag);
+        for (int r=0; r < requirementsCount; r++) {
+          Requirement requirement = flavor.getRequirements()[r];
+          TagNode requirementTag = new TagNode("requirement");
+          ...
+          requirementsTag.add(requirementTag);
+        }
+      }
+    }
+    return activityTag.toString();
+  }
+
+This code works with the domain objects Activity, Flavor, and Requirement, as shown in the following diagram.
+
+ 
+
+You may wonder why this code creates a Composite of TagNode objects just to render Activity data into XML, rather than simply asking Activity, Flavor, and Requirement instances to render themselves into XML via their own toXml() method. That's a fine question to ask, for if domain objects already form a Composite structure, it may not make any sense to form another Composite structure, like activityTag, just to render the domain objects into XML. In this case, however, producing the XML externally from the domain objects makes sense because the system that uses these domain objects must produce several XML representations of them, all of which are quite different. A single toXml() method for every domain object wouldn't work well here—each implementation of the method would need to produce too many different XML representations of the domain object.
+
+After transforming the catalogXmlFor(…) method to use a TagBuilder, it looks like this:
+
+public class CatalogWriter...
+  private String catalogXmlFor(Activity activity) {
+    
+TagBuilder builder = new TagBuilder("activity");
+    
+...
+    
+builder.addChild("flavors");
+    for (int i=0; i < activity.getFlavorCount(); i++) {
+      
+builder.addToParent("flavors", "flavor");
+      Flavor flavor = activity.getFlavor(i);
+      ...
+      int requirementsCount = flavor.getRequirements().length;
+      if (requirementsCount > 0) {
+        
+builder.addChild("requirements");
+        for (int r=0; r < requirementsCount; r++) {
+          Requirement requirement = flavor.getRequirements()[r];
+          
+builder.addToParent("requirements", "requirement");
+          ...
+        }
+      }
+    }
+    return 
+builder.toXml();
+  }
+
+And that does it for this refactoring! TagNode is now fully encapsulated by TagBuilder.

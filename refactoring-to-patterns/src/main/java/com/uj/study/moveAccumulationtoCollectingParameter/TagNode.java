@@ -50,17 +50,36 @@ public class TagNode {
 
     public String toString() {
         StringBuffer result = new StringBuffer("");
-        writeOpenTagTo(result);
+        appendContentsTo(result);
+        return result.toString();
 
+    }
+
+    private void appendContentsTo(StringBuffer result) {
+        writeOpenTagTo(result);
+        writeChildrenTo(result);
+        writeValueTo(result);
+        writeEndTagTo(result);
+    }
+
+    private void writeEndTagTo(StringBuffer result) {
+        result.append("</");
+        result.append(name);
+        result.append(">");
+    }
+
+    private void writeValueTo(StringBuffer result) {
+        if (!value.equals(""))
+            result.append(value);
+    }
+
+
+    private void writeChildrenTo(StringBuffer result) {
         Iterator it = children().iterator();
         while (it.hasNext()) {
             TagNode node = (TagNode)it.next();
-            result.append(node.toString());
+            node.appendContentsTo(result);  // now recursive call will work
         }
-
-        result.append(value);
-        result.append("</" + name + ">");
-        return result.toString();
     }
 
     private void writeOpenTagTo(StringBuffer result) {

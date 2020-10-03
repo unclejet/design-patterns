@@ -88,3 +88,78 @@ CompositeTag
 // and so on...
 
 Note that for the remainder of this refactoring, I'll show code from only two child containers, LinkTag and FormTag, even though there are others in the code base.
+
+## step3
+I look for a purely duplicated method across all child containers and find toPlainTextString(). Because this method has the same name in each child container, I don't have to change its name anywhere. My first step is to pull up the child Vector that stores children. I do this using the LinkTag class:
+
+public abstract class CompositeTag extends Tag...
+   
+protected Vector nodeVector;  // pulled-up field
+
+public class LinkTag extends CompositeTag...
+   
+
+private Vector nodeVector;
+
+
+I want FormTag to use the same newly pulled-up Vector, nodeVector (yes, it's an awful name, I'll change it soon), so I rename its local child Vector to be nodeVector:
+
+public class FormTag extends CompositeTag...
+   
+
+protected Vector allNodesVector;
+   
+protected Vector nodeVector;
+...
+
+Then I delete this local field (because FormTag inherits it):
+
+public class FormTag extends CompositeTag...
+   
+
+protected Vector nodeVector;
+
+
+Now I can rename nodeVector in the composite:
+
+public abstract class CompositeTag extends Tag...
+   
+
+protected Vector nodeVector;
+   
+protected Vector children;
+
+
+I'm now ready to pull up the toPlainTextString() method to CompositeTag. My first attempt at doing this with an automated refactoring tool fails because the two methods aren't identical in LinkTag and FormTag. The trouble is that LinkTag gets an iterator on its children by means of the linkData() method, while FormTag gets an iterator on its children by means of the getAllNodesVector().elements():
+
+public class LinkTag extends CompositeTag
+   public Enumeration linkData() {
+      return children.elements();
+   }
+
+   public String toPlainTextString()...
+      for (Enumeration e=
+linkData();e.hasMoreElements();)
+         ...
+
+public class FormTag extends CompositeTag...
+   public Vector getAllNodesVector() {
+      return children;
+   }
+   public String toPlainTextString()...
+      for (Enumeration e=
+getAllNodesVector().elements();e.hasMoreElements();)
+         ...
+
+To fix this problem, I must create a consistent method for getting access to a CompositeTag's children. I do this by making LinkTag and FormTag implement an identical method, called children(), which I pull up to CompositeTag:
+
+public abstract class CompositeTag extends Tag...
+   
+public Enumeration children() {
+      
+return children.elements();
+   
+}
+
+
+The automated refactoring in my IDE now lets me easily pull up toPlainTextString() to CompositeTag. I run my tests and everything works fine.

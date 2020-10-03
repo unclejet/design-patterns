@@ -10,8 +10,12 @@ import java.util.Vector;
  * @modified By：
  * @version:
  */
-public class FormTag extends Tag {
+public class FormTag extends CompositeTag {
     protected Vector allNodesVector;
+
+    public FormTag(int tagBegin, int tagEnd, String tagContents, String tagLine) {
+        super(tagBegin, tagEnd, tagContents, tagLine);
+    }
 
     public String toPlainTextString() {
         StringBuffer stringRepresentation = new StringBuffer();

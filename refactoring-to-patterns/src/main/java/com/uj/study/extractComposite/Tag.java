@@ -8,4 +8,18 @@ package com.uj.study.extractComposite;
  * @version:
  */
 public class Tag {
+    private int tagBegin;
+
+    private int tagEnd;
+
+    private String tagContents;
+
+    private String tagLine;
+
+    public Tag(int tagBegin, int tagEnd, String tagContents, String tagLine) {
+        this.tagBegin = tagBegin;
+        this.tagEnd = tagEnd;
+        this.tagContents = tagContents;
+        this.tagLine = tagLine;
+    }
 }

@@ -52,3 +52,39 @@ public class FormTag extends Tag...
    }
 
 Because FormTag and LinkTag both contain children, they both have a Vector for storing children, though it goes by a different name in each class. Both classes need to support the toPlainTextString() operation, which outputs the non-HTML-formatted text of the tag's children, so both classes contain logic to iterate over their children and produce plain text. Yet the code to do this operation is nearly identical in these classes! In fact, there are several nearly identical methods in the child-container classes, all of which reek of duplication. So follow along as I apply Extract Composite to this code.
+
+## step1
+I must first create an abstract class that will become the superclass of the child-container classes. Because the child-container classes, like LinkTag and FormTag, are already subclasses of Tag, I create the following class:
+
+
+
+public abstract class CompositeTag extends Tag {
+   
+public CompositeTag(
+      
+int tagBegin,
+      
+int tagEnd,
+      
+String tagContents,
+      
+String tagLine) {
+      
+super(tagBegin, tagEnd, tagContents, tagLine);
+   
+}
+
+}
+
+## step2
+Now I make the child containers subclasses of CompositeTag:
+
+public class LinkTag extends 
+CompositeTag
+
+public class FormTag extends 
+CompositeTag
+
+// and so on...
+
+Note that for the remainder of this refactoring, I'll show code from only two child containers, LinkTag and FormTag, even though there are others in the code base.

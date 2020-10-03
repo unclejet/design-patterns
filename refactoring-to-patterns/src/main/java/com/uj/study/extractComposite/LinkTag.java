@@ -10,8 +10,12 @@ import java.util.Vector;
  * @modified By：
  * @version:
  */
-public class LinkTag extends Tag {
+public class LinkTag extends CompositeTag {
     private Vector nodeVector;
+
+    public LinkTag(int tagBegin, int tagEnd, String tagContents, String tagLine) {
+        super(tagBegin, tagEnd, tagContents, tagLine);
+    }
 
     public String toPlainTextString() {
         StringBuffer sb = new StringBuffer();

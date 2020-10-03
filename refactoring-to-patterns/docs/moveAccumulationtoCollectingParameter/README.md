@@ -1,0 +1,2 @@
+![R2P](./Screenshot from 2020-10-03 10-50-31.png)
+A Collecting Parameter is an object that you pass to methods in order to collect information from those methods. This pattern is often coupled with Composed Method [Beck, SBPP] (see the refactoring Compose Method, 123).

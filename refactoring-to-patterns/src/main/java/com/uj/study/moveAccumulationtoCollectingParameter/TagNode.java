@@ -49,18 +49,25 @@ public class TagNode {
     }
 
     public String toString() {
-        String result;
-        result = "<" + name + attributes + ">";
+        StringBuffer result = new StringBuffer("");
+        writeOpenTagTo(result);
 
         Iterator it = children().iterator();
         while (it.hasNext()) {
             TagNode node = (TagNode)it.next();
-            result += node.toString();
+            result.append(node.toString());
         }
 
-        result += value;
-        result += "</" + name + ">";
-        return result;
+        result.append(value);
+        result.append("</" + name + ">");
+        return result.toString();
+    }
+
+    private void writeOpenTagTo(StringBuffer result) {
+        result.append("<");
+        result.append(name);
+        result.append(attributes.toString());
+        result.append(">");
     }
 
     public TagNode getParent() {

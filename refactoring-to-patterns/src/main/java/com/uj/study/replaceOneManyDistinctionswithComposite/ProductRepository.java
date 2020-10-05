@@ -35,13 +35,7 @@ public class ProductRepository {
         Iterator products = iterator();
         while (products.hasNext()) {
             Product product = (Product)products.next();
-            Iterator specifications = spec.getSpecs().iterator();
-            boolean satisfiesAllSpecs = true;
-            while (specifications.hasNext()) {
-                Spec productSpec = ((Spec)specifications.next());
-                satisfiesAllSpecs &= productSpec.isSatisfiedBy(product);
-            }
-            if (satisfiesAllSpecs)
+            if (spec.isSatisfiedBy(product))
                 foundProducts.add(product);
         }
         return foundProducts;

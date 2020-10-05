@@ -178,3 +178,78 @@ spec.getSpecs().iterator();
 
 I compile and test to confirm that these changes work.
 
+## step2
+Now I apply Extract Method [F] on the selectBy(…) code that specifically deals with specs:
+
+public class ProductRepository...
+   public List selectBy(List specs) {
+      CompositeSpec spec = new CompositeSpec(specs);
+      List foundProducts = new ArrayList();
+      Iterator products = iterator();
+      while (products.hasNext()) {
+         Product product = (Product)products.next();
+         if (
+isSatisfiedBy(spec, product))
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+   
+public boolean isSatisfiedBy(CompositeSpec spec, Product product) {
+      
+Iterator specifications = spec.getSpecs().iterator();
+      
+boolean satisfiesAllSpecs = true;
+      
+while (specifications.hasNext()) {
+         
+Spec productSpec = ((Spec)specifications.next());
+         
+satisfiesAllSpecs &= productSpec.isSatisfiedBy(product);
+      
+}
+      
+return satisfiesAllSpecs;
+   
+}
+
+
+The compiler and test code are happy with this change, so I can now apply Move Method [F] to move the isSatisfiedBy(…) method to the CompositeSpec class:
+
+public class ProductRepository...
+   public List selectBy(List specs) {
+      CompositeSpec spec = new CompositeSpec(specs);
+      List foundProducts = new ArrayList();
+      Iterator products = iterator();
+      while (products.hasNext()) {
+         Product product = (Product)products.next();
+         if (
+spec.isSatisfiedBy(product))
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+public class CompositeSpec...
+   
+public boolean isSatisfiedBy(Product product) {
+      
+Iterator specifications = getSpecs().iterator();
+      
+boolean satisfiesAllSpecs = true;
+      
+while (specifications.hasNext()) {
+         
+Spec productSpec = ((Spec)specifications.next());
+         
+satisfiesAllSpecs &= productSpec.isSatisfiedBy(product);
+      
+}
+      
+return satisfiesAllSpecs;
+   
+}
+
+
+One again, I check that the compiler and test code are happy with this change. Both are.

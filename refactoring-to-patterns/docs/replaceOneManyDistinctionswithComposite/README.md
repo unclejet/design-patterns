@@ -126,3 +126,55 @@ product.getColor() != targetColor ||
 product.getPrice() < targetPrice
 
 The List-based selectBy(…) method cannot support such queries. In addition, having just one selectBy(…) method is preferred so clients can call it in a uniform way. Therefore, I decide to refactor to the Composite pattern by implementing the following steps.
+
+## step1
+The List-based selectBy(…) method is the many-object method. It accepts the following parameter: List specs. My first step is to create a new class that will hold onto the value of the specs parameter and provide access to it via a getter method:
+
+
+
+public class CompositeSpec {
+   
+private List specs;
+
+   
+public CompositeSpec(List specs) {
+      
+this.specs = specs;
+   
+}
+
+   
+public List getSpecs() {
+      
+return specs;
+   
+}
+
+}
+
+
+Next, I'll instantiate this class within the List-based selectBy(…) method and update code to call its getter method:
+
+public class ProductRepository...
+   public List selectBy(List specs) {
+      
+CompositeSpec spec = new CompositeSpec(specs);
+      List foundProducts = new ArrayList();
+      Iterator products = iterator();
+      while (products.hasNext()) {
+         Product product = (Product)products.next();
+         Iterator specifications = 
+spec.getSpecs().iterator();
+         boolean satisfiesAllSpecs = true;
+         while (specifications.hasNext()) {
+            Spec productSpec = ((Spec)specifications.next());
+            satisfiesAllSpecs &= productSpec.isSatisfiedBy(product);
+         }
+         if (satisfiesAllSpecs)
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+I compile and test to confirm that these changes work.
+

@@ -30,11 +30,12 @@ public class ProductRepository {
     }
 
     public List selectBy(List specs) {
+        CompositeSpec spec = new CompositeSpec(specs);
         List foundProducts = new ArrayList();
         Iterator products = iterator();
         while (products.hasNext()) {
             Product product = (Product)products.next();
-            Iterator specifications = specs.iterator();
+            Iterator specifications = spec.getSpecs().iterator();
             boolean satisfiesAllSpecs = true;
             while (specifications.hasNext()) {
                 Spec productSpec = ((Spec)specifications.next());

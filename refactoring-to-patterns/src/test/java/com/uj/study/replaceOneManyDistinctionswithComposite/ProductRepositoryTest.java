@@ -66,7 +66,7 @@ public class ProductRepositoryTest {
      */
     @Test
     public void testFindByColorSizeAndBelowPrice() {
-        List specs = new ArrayList();
+        CompositeSpec specs = new CompositeSpec();
         specs.add(new ColorSpec(Color.red));
         specs.add(new SizeSpec(ProductSize.SMALL));
         specs.add(new BelowPriceSpec(10.00));

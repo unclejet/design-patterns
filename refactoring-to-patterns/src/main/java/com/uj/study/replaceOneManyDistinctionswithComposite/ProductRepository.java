@@ -29,10 +29,6 @@ public class ProductRepository {
         return foundProducts;
     }
 
-    public List selectBy(List specs) {
-        return selectBy(new CompositeSpec(specs));
-    }
-
     public Iterator iterator() {
         return products.iterator();
     }

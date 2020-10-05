@@ -1,5 +1,7 @@
 package com.uj.study.replaceOneManyDistinctionswithComposite;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -11,15 +13,14 @@ import java.util.List;
  * @version:
  */
 public class CompositeSpec extends Spec {
-    private List specs;
+    private List specs = new ArrayList();
 
-    public CompositeSpec(List specs) {
-        this.specs = specs;
+    public void add(Spec spec) {
+        specs.add(spec);
     }
 
-
     public List getSpecs() {
-        return specs;
+        return Collections.unmodifiableList(specs);
     }
 
     @Override

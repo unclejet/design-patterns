@@ -290,3 +290,85 @@ public class CompositeSpec
 extends Spec...
 
 Now the compiler is happy, as is the test code.
+
+## step5-6
+Because the List-based selectBy(…) method is now only one line of code that calls the one-Spec selectBy(…) method, I inline it by applying Inline Method [F]. Client code that used to call the List-based selectBy(…) now calls the one-Spec selectBy(…) method. Here's an example of such a change:
+
+public class ProductRepositoryTest...
+   public void testFindByColorSizeAndBelowPrice() {
+      List specs = new ArrayList();
+      specs.add(new ColorSpec(Color.red));
+      specs.add(new SizeSpec(ProductSize.SMALL));
+      specs.add(new BelowPriceSpec(10.00));
+      
+
+List foundProducts = repository.selectBy(specs);
+      List foundProducts = repository.selectBy(
+new CompositeSpec(specs));
+      ...
+
+There's now only one selectBy(…) method that accepts Spec objects like ColorSpec, SizeSpec, or the new CompositeSpec. This is a useful start. However, to build Composite structures that support product searches like product.getColor() != targetColor || product.getPrice() < targetPrice, there is a need for classes like NotSpec and OrSpec. I won't show how they're created here; you can read about them in the refactoring Replace Implicit Language with Interpreter (269).
+
+6. The final step involves applying Encapsulate Collection [F] on the collection inside of CompositeSpec. I do this to make CompositeSpec more type-safe (i.e., to prevent clients from adding objects to it that aren't a subclass of Spec).
+
+I begin by defining the add(Spec spec) method:
+
+public class CompositeSpec extends Spec...
+   private List specs;
+
+   
+public void add(Spec spec) {
+      
+specs.add(spec);
+   
+}
+
+
+Next, I initialize specs to an empty list:
+
+public class CompositeSpec extends Spec...
+   private List specs 
+= new ArrayList();
+
+Now comes the fun part. I find all callers of CompositeSpec's constructor and update them to call a new, default CompositeSpec constructor as well as the new add(…) method. Here is one such caller and the updates I make to it:
+
+public class ProductRepositoryTest...
+   public void testFindByColorSizeAndBelowPrice()...
+      
+
+List specs = new ArrayList();
+      
+CompositeSpec specs = new CompositeSpec();
+      specs.add(new ColorSpec(Color.red));
+      specs.add(new SizeSpec(ProductSize.SMALL));
+      specs.add(new BelowPriceSpec(10.00));
+      List foundProducts = repository.selectBy(
+specs);
+      ...
+
+I compile and test to confirm that the changes work. Once I've updated all other clients, there are no more callers to CompositeSpec's constructor that take a List. So I delete it:
+
+public class CompositeSpec extends Spec...
+   
+
+public CompositeSpec(List specs) {
+      
+
+this.specs = specs;
+   
+
+}
+
+
+Now I update CompositeSpec's getSpecs(…) method to return an unmodifiable version of specs:
+
+public class CompositeSpec extends Spec...
+   private List specs = new ArrayList();
+
+   public List getSpecs()
+      return 
+Collections.unmodifiableList(specs);
+   }
+
+I compile and test to confirm that my implementation of Encapsulate Collection works. It does. CompositeSpec is now a fine implementation of the Composite pattern:
+![R2P](./Screenshot from 2020-10-05 10-39-31.png)

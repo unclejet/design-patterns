@@ -10,7 +10,7 @@ import java.util.List;
  * @modified By：
  * @version:
  */
-public class CompositeSpec {
+public class CompositeSpec extends Spec {
     private List specs;
 
     public CompositeSpec(List specs) {
@@ -22,6 +22,7 @@ public class CompositeSpec {
         return specs;
     }
 
+    @Override
     public boolean isSatisfiedBy(Product product) {
         Iterator specifications = getSpecs().iterator();
         boolean satisfiesAllSpecs = true;

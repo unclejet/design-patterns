@@ -18,7 +18,7 @@ public class ProductRepository {
         products.add(product);
     }
 
-    public List selectBy(ColorSpec spec) {
+    public List selectBy(Spec spec) {
         List foundProducts = new ArrayList();
         Iterator products = iterator();
         while (products.hasNext()) {
@@ -30,15 +30,7 @@ public class ProductRepository {
     }
 
     public List selectBy(List specs) {
-        CompositeSpec spec = new CompositeSpec(specs);
-        List foundProducts = new ArrayList();
-        Iterator products = iterator();
-        while (products.hasNext()) {
-            Product product = (Product)products.next();
-            if (spec.isSatisfiedBy(product))
-                foundProducts.add(product);
-        }
-        return foundProducts;
+        return selectBy(new CompositeSpec(specs));
     }
 
     public Iterator iterator() {

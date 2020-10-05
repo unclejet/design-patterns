@@ -253,3 +253,40 @@ return satisfiesAllSpecs;
 
 
 One again, I check that the compiler and test code are happy with this change. Both are.
+
+## step3-4
+The two selectBy(…) methods are now nearly identical. The only difference is that the List-based selectBy(…) method instantiates a CompositeSpec instance:
+
+public class ProductRepository...
+   public List selectBy(Spec spec) {
+      // same code
+   }
+
+   public List selectBy(List specs) {
+      
+CompositeSpec spec = new CompositeSpec(specs);
+      // same code
+   }
+
+The next step will help remove the duplicated code.
+
+4. I now want to make the List-based selectBy(…) method call the one-Spec selectBy(…) method, like so:
+
+public class ProductRepository...
+   public List selectBy(Spec spec)...
+
+   public List selectBy(List specs) {
+      
+return selectBy(new CompositeSpec(specs));
+   }
+
+The compiler does not like this code because CompositeSpec does not share the same interface as Spec, the type used by the called selectBy(…) method. Spec is an abstract class that looks like this:
+
+
+
+Since CompositeSpec already implements the isSatisfiedBy(…) method declared by Spec, it's trivial to make CompositeSpec a subclass of Spec:
+
+public class CompositeSpec 
+extends Spec...
+
+Now the compiler is happy, as is the test code.

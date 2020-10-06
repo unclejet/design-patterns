@@ -1,5 +1,6 @@
 package com.uj.study.replaceConditionalDispatcherwithCommand;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -15,17 +16,26 @@ public class CatalogApp {
 
     private WorkshopManager workshopManager;
 
-    public HandlerResponse executeActionAndGetResponse(String actionName, Map parameters) {
-        if (actionName.equals(NEW_WORKSHOP))
-            new NewWorkshopHandler(this).execute(parameters);
-         else if (actionName.equals(ALL_WORKSHOPS))
-            return new AllWorkshopsHandler(this).execute(parameters);
-        ///...many more "else if" statements
-        return null;
+    private Map handlers;
+
+    public CatalogApp() {
+        createHandlers();
     }
 
-    private String getFormattedData(String toString) {
-        return null;
+    public HandlerResponse executeActionAndGetResponse(String handlerName, Map parameters) {
+        Handler handler = lookupHandlerBy(handlerName);
+        return handler.execute(parameters);
+    }
+
+    public void createHandlers() {
+        handlers = new HashMap();
+        handlers.put(NEW_WORKSHOP, new NewWorkshopHandler(this));
+        handlers.put(ALL_WORKSHOPS, new AllWorkshopsHandler(this));
+//...
+    }
+
+    private Handler lookupHandlerBy(String handlerName) {
+        return (Handler)handlers.get(handlerName);
     }
 
     public WorkshopManager getWorkshopManager() {

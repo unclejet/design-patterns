@@ -15,7 +15,7 @@ public class NewWorkshopHandler extends Handler {
         super(catalogApp);
     }
 
-    protected HandlerResponse execute(Map parameters) {
+    public HandlerResponse execute(Map parameters) {
         createNewWorkshop(parameters);
         return catalogApp.executeActionAndGetResponse(CatalogApp.ALL_WORKSHOPS, parameters);
     }

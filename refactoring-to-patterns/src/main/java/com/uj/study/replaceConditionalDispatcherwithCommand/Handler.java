@@ -9,10 +9,12 @@ import java.util.Map;
  * @modified By：
  * @version:
  */
-public class Handler {
+public abstract class Handler {
     protected CatalogApp catalogApp;
 
     public Handler(CatalogApp catalogApp) {
         this.catalogApp = catalogApp;
     }
+
+    public abstract HandlerResponse execute(Map parameters);
 }

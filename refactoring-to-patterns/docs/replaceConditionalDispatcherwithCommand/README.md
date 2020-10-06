@@ -369,3 +369,50 @@ execute(parameters);
 
 I compile and run the tests to find that everything is working.
 
+## step6
+Now comes the fun part. CatalogApp's conditional statement is merely acting like a crude Map. It would be better to turn it into a real map by storing an instance of my command in a command map. To do that, I define and populate handlers, a Map keyed by handler name:
+
+public class CatalogApp...
+  
+private Map handlers;
+  public CatalogApp(...) {
+    ...
+    
+createHandlers();
+    ...
+  }
+
+  
+public void createHandlers() {
+    
+handlers = new HashMap();
+    
+handlers.put(NEW_WORKSHOP, new NewWorkshopHandler(this));
+    
+handlers.put(ALL_WORKSHOPS, new AllWorkshopsHandler(this));
+    
+...
+  
+}
+
+## step7
+Finally, I replace CatalogApp's large conditional statement with code that looks up a handler by name and executes it:
+
+public class CatalogApp...
+  public HandlerResponse executeActionAndGetResponse(
+    String handlerName, Map parameters) throws Exception {
+    
+Handler handler = lookupHandlerBy(handlerName);
+    
+return handler.execute(parameters);
+  }
+
+  
+private Handler lookupHandlerBy(String handlerName) {
+    
+return (Handler)handlers.get(handlerName);
+  
+}
+
+
+The compiler and test code are happy with this Command-based solution. CatalogApp now uses the Command pattern to execute an action and get back a response. This design makes it easy to declare a new handler, name it, and register it in the command map so that it may be invoked at runtime to perform an action.

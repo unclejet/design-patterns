@@ -294,3 +294,78 @@ return prettyPrinter.format(buffer);
 
 
 After performing this step for every concrete command, I look for duplicated code across all of the concrete commands. I don't find much duplication, so there is no need to apply Form Template Method (205).
+
+## step4
+I must now create a command (as defined in the Mechanics section, an interface or abstract class that declares an execution method that every concrete command must implement). At the moment, every concrete command has an execution method with a different name, and the execution methods take a different number of arguments (namely, one or none):
+
+   if (actionName.equals(NEW_WORKSHOP)) {
+     return new NewWorkshopHandler(this).
+getNewWorkshopResponse(parameters);
+   } else if (actionName.equals(ALL_WORKSHOPS)) {
+     return new AllWorkshopsHandler(this).
+getAllWorkshopsResponse();
+   } ...
+
+Making a command will involve deciding on:
+
+A common execution method name
+
+What information to pass to and obtain from each handler
+
+The common execution method name I choose is execute (a name that's often used when implementing the Command pattern, but by no means the only name to use). Now I must decide what information needs to be passed to and/or obtained from a call to execute(). I survey the concrete commands I've created and learn that a good many of them:
+
+Require information contained in a Map called parameters
+
+Return an object of type HandlerResponse
+
+Throw an Exception
+
+This means that my command must include an execution method with the following signature:
+
+public HandlerResponse execute(Map parameters) throws Exception
+
+I create the command by performing two refactorings on NewWorkshopHandler. First, I rename its getNewWorkshopResponse(…) method to execute(…):
+
+public class NewWorkshopHandler...
+   public HandlerResponse 
+execute(Map parameters) throws Exception
+
+Next, I apply the refactoring Extract Superclass [F] to produce an abstract class called Handler:
+
+
+
+public abstract class Handler {
+  
+protected CatalogApp catalogApp;
+
+  
+public Handler(CatalogApp catalogApp) {
+    
+this.catalogApp = catalogApp;
+  
+}
+
+}
+
+public class NewWorkshopHandler 
+extends Handler...
+  public NewWorkshopHandler(CatalogApp catalogApp) {
+    
+super(catalogApp);
+  }
+
+The compiler is happy with the new class, so I move on.
+
+## step5
+Now that I have the command (expressed as the abstract Handler class), I'll make every handler implement it. I do this by making them all extend Handler and implement the execute() method. When I'm done, the handlers may now be invoked identically:
+
+   if (actionName.equals(NEW_WORKSHOP)) {
+     return new NewWorkshopHandler(this).
+execute(parameters);
+   } else if (actionName.equals(ALL_WORKSHOPS)) {
+     return new AllWorkshopsHandler(this).
+execute(parameters);
+   } ...
+
+I compile and run the tests to find that everything is working.
+

@@ -1,6 +1,7 @@
 package com.uj.study.replaceConditionalDispatcherwithCommand;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author ：unclejet
@@ -9,16 +10,15 @@ import java.util.Iterator;
  * @modified By：
  * @version:
  */
-public class AllWorkshopsHandler {
-    private CatalogApp catalogApp;
+public class AllWorkshopsHandler extends Handler {
     private static String ALL_WORKSHOPS_STYLESHEET="allWorkshops.xsl";
     private PrettyPrinter prettyPrinter = new PrettyPrinter();
 
     public AllWorkshopsHandler(CatalogApp catalogApp) {
-        this.catalogApp = catalogApp;
+        super(catalogApp);
     }
 
-    public HandlerResponse getAllWorkshopsResponse() {
+    public HandlerResponse execute(Map parameters) {
         return new HandlerResponse(
                 new StringBuffer(prettyPrint(allWorkshopsData())),
                 ALL_WORKSHOPS_STYLESHEET);

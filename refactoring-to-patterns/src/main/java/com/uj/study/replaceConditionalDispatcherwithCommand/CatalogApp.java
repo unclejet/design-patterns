@@ -1,6 +1,5 @@
 package com.uj.study.replaceConditionalDispatcherwithCommand;
 
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -13,15 +12,14 @@ import java.util.Map;
 public class CatalogApp {
     private static final String NEW_WORKSHOP = "new workshop";
     public static final String ALL_WORKSHOPS = "all workshops";
-    private static final String ALL_WORKSHOPS_STYLESHEET = "all workshops stylesheet";
 
     private WorkshopManager workshopManager;
 
     public HandlerResponse executeActionAndGetResponse(String actionName, Map parameters) {
         if (actionName.equals(NEW_WORKSHOP))
-            new NewWorkshopHandler(this).getNewWorkshopResponse(parameters);
+            new NewWorkshopHandler(this).execute(parameters);
          else if (actionName.equals(ALL_WORKSHOPS))
-            return new AllWorkshopsHandler(this).getAllWorkshopsResponse();
+            return new AllWorkshopsHandler(this).execute(parameters);
         ///...many more "else if" statements
         return null;
     }

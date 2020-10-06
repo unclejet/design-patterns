@@ -9,14 +9,13 @@ import java.util.Map;
  * @modified By：
  * @version:
  */
-public class NewWorkshopHandler {
-    private CatalogApp catalogApp;
+public class NewWorkshopHandler extends Handler {
 
     public NewWorkshopHandler(CatalogApp catalogApp) {
-        this.catalogApp = catalogApp;
+        super(catalogApp);
     }
 
-    protected HandlerResponse getNewWorkshopResponse(Map parameters) {
+    protected HandlerResponse execute(Map parameters) {
         createNewWorkshop(parameters);
         return catalogApp.executeActionAndGetResponse(CatalogApp.ALL_WORKSHOPS, parameters);
     }

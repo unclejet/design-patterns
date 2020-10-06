@@ -138,3 +138,159 @@ ALL_WORKSHOPS_STYLESHEET
 
 
 I compile, test, and repeat this step for all remaining chunks of request-handling code.
+
+## step3
+Now I begin creating concrete commands. I first produce the NewWorkshopHandler concrete command by applying Extract Class [F] on the execution method getNewWorkshopResponse():
+
+
+
+public class NewWorkshopHandler {
+  
+private CatalogApp catalogApp;
+
+  
+public NewWorkshopHandler(CatalogApp catalogApp) {
+    
+this.catalogApp = catalogApp;
+  
+}
+
+  
+public HandlerResponse getNewWorkshopResponse(Map parameters) throws Exception {
+    
+String nextWorkshopID = workshopManager().getNextWorkshopID();
+    
+StringBuffer newWorkshopContents =
+      
+WorkshopManager().createNewFileFromTemplate(
+        
+nextWorkshopID,
+        
+workshopManager().getWorkshopDir(),
+        
+workshopManager().getWorkshopTemplate()
+      
+);
+    
+workshopManager().addWorkshop(newWorkshopContents);
+    
+parameters.put("id", nextWorkshopID);
+    
+catalogApp.executeActionAndGetResponse(ALL_WORKSHOPS, parameters);
+  
+}
+
+  
+private WorkshopManager workshopManager() {
+    
+return catalogApp.getWorkshopManager();
+  
+}
+
+}
+
+
+CatalogApp instantiates and calls an instance of NewWorkshopHandler like so:
+
+public class CatalogApp...
+  
+public HandlerResponse executeActionAndGetResponse(
+    String actionName, Map parameters) throws Exception {
+    if (actionName.equals(NEW_WORKSHOP)) {
+      
+return new NewWorkshopHandler(this).getNewWorkshopResponse(parameters);
+    } else if (actionName.equals(ALL_WORKSHOPS)) {
+      ...
+    } ...
+
+The compiler and tests confirm that these changes work fine. Note that I made executeActionAndGetResponse(…) public because it's called from NewWorkshopHandler.
+
+Before I go on, I apply Compose Method (123) on NewWorkshopHandler's execution method:
+
+
+
+public class NewWorkshopHandler...
+  
+public HandlerResponse getNewWorkshopResponse(Map parameters) throws Exception {
+    
+createNewWorkshop(parameters);
+    
+return catalogApp.executeActionAndGetResponse(
+      
+CatalogApp.ALL_WORKSHOPS, parameters);
+  
+}
+
+  
+private void createNewWorkshop(Map parameters) throws Exception {
+    
+String nextWorkshopID = workshopManager().getNextWorkshopID();
+    
+workshopManager().addWorkshop(newWorkshopContents(nextWorkshopID));
+    
+parameters.put("id",nextWorkshopID);
+  
+}
+
+  
+private StringBuffer newWorkshopContents(String nextWorkshopID) throws Exception {
+    
+StringBuffer newWorkshopContents = workshopManager().createNewFileFromTemplate(
+      
+nextWorkshopID,
+      
+workshopManager().getWorkshopDir(),
+      
+workshopManager().getWorkshopTemplate()
+    
+);
+    
+return newWorkshopContents;
+  
+}
+
+
+I repeat this step for additional execution methods that ought to be extracted into their own concrete commands and turned into Composed Methods. AllWorkshopsHandler is the next concrete command I extract. Here's how it looks:
+
+
+
+public class AllWorkshopsHandler...
+  
+private CatalogApp catalogApp;
+  
+private static String ALL_WORKSHOPS_STYLESHEET="allWorkshops.xsl";
+  
+private PrettyPrinter prettyPrinter = new PrettyPrinter();
+
+  
+public AllWorkshopsHandler(CatalogApp catalogApp) {
+    
+this.catalogApp = catalogApp;
+  
+}
+
+  
+public HandlerResponse getAllWorkshopsResponse() throws Exception {
+    
+return new HandlerResponse(
+      
+new StringBuffer(prettyPrint(allWorkshopsData())),
+      
+ALL_WORKSHOPS_STYLESHEET
+    
+);
+  
+}
+
+  
+private String allWorkshopsData() ...
+
+  
+private String prettyPrint(String buffer) {
+    
+return prettyPrinter.format(buffer);
+  
+}
+
+
+After performing this step for every concrete command, I look for duplicated code across all of the concrete commands. I don't find much duplication, so there is no need to apply Form Template Method (205).

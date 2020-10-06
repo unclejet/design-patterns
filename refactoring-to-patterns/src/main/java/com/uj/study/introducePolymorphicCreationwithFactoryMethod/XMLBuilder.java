@@ -11,4 +11,7 @@ public class XMLBuilder extends OutputBuilder {
     public XMLBuilder(String orders) {
         super();
     }
+
+    public void addBelowParent(String workshop) {
+    }
 }

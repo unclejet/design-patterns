@@ -11,34 +11,52 @@ import java.util.ArrayDeque;
  */
 public class DOMBuilder extends AbstractBuilder {
     private Document document;
-    private Element root;
-    private Element parent;
-    private Element current;
+    private ElementAdapter root;
+    private ElementAdapter parent;
+    private ElementAdapter current;
     private ArrayDeque<Element> history;
 
     public void addAttribute(String name, String value) {
-        current.setAttribute(name, value);
+        current.getElement().setAttribute(name, value);
+    }
+
+    public void addChild(String childTagName) {
+        ElementAdapter childNode = new ElementAdapter(document.createElement(childTagName));
+        current.getElement().appendChild(childNode.getElement());
+        parent = current;
+        current = childNode;
+        history.push(current.getElement());
+    }
+
+    public void addSibling(String siblingTagName) {
+        if (current == root)
+            throw new RuntimeException(CANNOT_ADD_BESIDE_ROOT);
+        ElementAdapter siblingNode = new ElementAdapter(document.createElement(siblingTagName));
+        parent.getElement().appendChild(siblingNode.getElement());
+        current = siblingNode;
+        history.pop();
+        history.push(current.getElement());
     }
 
     public void addBelow(String child) {
         Element childNode = document.createElement(child);
-        current.appendChild(childNode);
+        current.getElement().appendChild(childNode);
         parent = current;
-        current = childNode;
-        history.push(current);
+        current.setElement(childNode);
+        history.push(current.getElement());
     }
 
     public void addBeside(String sibling) {
         if (current == root)
             throw new RuntimeException(CANNOT_ADD_BESIDE_ROOT);
         Element siblingNode = document.createElement(sibling);
-        parent.appendChild(siblingNode);
-        current = siblingNode;
+        parent.getElement().appendChild(siblingNode);
+        current.setElement(siblingNode);
         history.pop();
-        history.push(current);
+        history.push(current.getElement());
     }
 
     public void addValue(String value) {
-        current.appendChild(document.createTextNode(value));
+        current.getElement().appendChild(document.createTextNode(value));
     }
 }

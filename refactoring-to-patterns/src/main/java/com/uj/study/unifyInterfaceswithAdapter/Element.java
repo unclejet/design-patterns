@@ -7,12 +7,8 @@ package com.uj.study.unifyInterfaceswithAdapter;
  * @modified By：
  * @version:
  */
-public class Element {
-    public void setAttribute(String name, String value) {
+public interface Element {
+    void setAttribute(String name, String value);
 
-    }
-
-    public void appendChild(Element childNode) {
-
-    }
+    void appendChild(Element childNode);
 }

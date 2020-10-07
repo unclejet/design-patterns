@@ -7,7 +7,7 @@ package com.uj.study.unifyInterfaceswithAdapter;
  * @modified By：
  * @version:
  */
-public class TagNode {
+public class TagNode implements XMLNode {
     private String tagName;
 
     public TagNode(String tagName) {
@@ -19,6 +19,11 @@ public class TagNode {
     }
 
     public void add(TagNode currentNode) {
+
+    }
+
+    @Override
+    public void add(XMLNode childNode) {
 
     }
 

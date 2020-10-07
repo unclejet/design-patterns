@@ -8,4 +8,7 @@ package com.uj.study.replaceStateAlteringConditionalswithState;
  * @version:
  */
 public class SystemProfile {
+    public boolean isUnixPermissionRequired() {
+        return false;
+    }
 }

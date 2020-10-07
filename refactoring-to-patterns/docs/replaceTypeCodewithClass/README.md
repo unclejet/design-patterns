@@ -107,3 +107,105 @@ public final static PermissionState DENIED = new PermissionState();
 The compiler accepts this new code.
 
 Now I must decide whether I want to prevent clients from extending or instantiating PermissionState in order to ensure that the only instances of it are its own four constants. In this case, I don't need such a rigorous level of type safety, so I don't define a private constructor or use the final keyword for the new class.
+
+## step 4
+Next, I create a type-safe field inside SystemPermission, using the PermissionState type. I also create a setter method for it:
+
+public class SystemPermission...
+   private String state;
+   
+private PermissionState permission;
+
+   
+private void setState(PermissionState permission) {
+      
+this.permission = permission;
+   
+}
+
+## step5
+Now I must find all assignment statements to the type-unsafe field, state, and make similar assignment statements to the type-safe field, permission:
+
+public class SystemPermission...
+   public SystemPermission() {
+      setState(REQUESTED);
+      
+setState(PermissionState.REQUESTED);
+      granted = false;
+   }
+
+   public void claimed() {
+      if (getState().equals(REQUESTED)) 
+{
+         setState(CLAIMED);
+         
+setState(PermissionState.CLAIMED);
+      
+}
+   }
+
+   public void denied() {
+      if (getState().equals(CLAIMED)) 
+{
+         setState(DENIED);
+         
+setState(PermissionState.DENIED);
+      
+}
+   }
+
+   public void granted() {
+      if (!getState().equals(CLAIMED))
+         return;
+      setState(GRANTED);
+      
+setState(PermissionState.GRANTED);
+      granted = true;
+   }
+
+I confirm that the compiler is OK with these changes.
+
+## step6
+Next, I want to change the getter method for state to return a value obtained from the type-safe field, permission. Because the getter method for state returns a String, I'll have to make permission capable of returning a String as well. My first step is to modify PermissionState to support a toString() method that returns the name of each constant:
+
+public class PermissionState {
+   
+private final String name;
+
+   
+private PermissionState(String name) {
+      
+this.name = name;
+   
+}
+
+   
+public String toString() {
+      
+return name;
+   
+}
+
+   public final static PermissionState REQUESTED = new PermissionState(
+"REQUESTED");
+   public final static PermissionState CLAIMED = new PermissionState(
+"CLAIMED");
+   public final static PermissionState GRANTED = new PermissionState(
+"GRANTED");
+   public final static PermissionState DENIED = new PermissionState(
+"DENIED");
+}
+
+I can now update the getter method for state:
+
+public class SystemPermission...
+   public String getState() {
+      
+
+return state;
+      
+return permission.toString();
+   }
+
+The compiler and tests confirm that everything is still working.
+

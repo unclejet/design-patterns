@@ -11,9 +11,9 @@ import java.util.ArrayDeque;
  */
 public class DOMBuilder extends AbstractBuilder {
     private Document document;
-    private ElementAdapter root;
-    private ElementAdapter parent;
-    private ElementAdapter current;
+    private XMLNode root;
+    private XMLNode parent;
+    private XMLNode current;
     private ArrayDeque<Element> history;
 
     public void addAttribute(String name, String value) {
@@ -21,21 +21,21 @@ public class DOMBuilder extends AbstractBuilder {
     }
 
     public void addChild(String childTagName) {
-        ElementAdapter childNode = new ElementAdapter(document.createElement(childTagName), document);
+        XMLNode childNode = new ElementAdapter(document.createElement(childTagName), document);
         current.add(childNode);
         parent = current;
         current = childNode;
-        history.push(current.getElement());
+        history.push(((ElementAdapter)current).getElement());
     }
 
     public void addSibling(String siblingTagName) {
         if (current == root)
             throw new RuntimeException(CANNOT_ADD_BESIDE_ROOT);
-        ElementAdapter siblingNode = new ElementAdapter(document.createElement(siblingTagName), document);
+        XMLNode siblingNode = new ElementAdapter(document.createElement(siblingTagName), document);
         parent.add(siblingNode);
         current = siblingNode;
         history.pop();
-        history.push(current.getElement());
+        history.push(((ElementAdapter)current).getElement());
     }
 
     public void addValue(String value) {
@@ -44,19 +44,19 @@ public class DOMBuilder extends AbstractBuilder {
 
     public void addBelow(String child) {
         Element childNode = document.createElement(child);
-        current.getElement().appendChild(childNode);
+        ((ElementAdapter)current).getElement().appendChild(childNode);
         parent = current;
-        current.setElement(childNode);
-        history.push(current.getElement());
+        ((ElementAdapter)current).setElement(childNode);
+        history.push(((ElementAdapter)current).getElement());
     }
 
     public void addBeside(String sibling) {
         if (current == root)
             throw new RuntimeException(CANNOT_ADD_BESIDE_ROOT);
         Element siblingNode = document.createElement(sibling);
-        parent.getElement().appendChild(siblingNode);
-        current.setElement(siblingNode);
+        ((ElementAdapter)current).getElement().appendChild(siblingNode);
+        ((ElementAdapter)current).setElement(siblingNode);
         history.pop();
-        history.push(current.getElement());
+        history.push(((ElementAdapter)current).getElement());
     }
 }

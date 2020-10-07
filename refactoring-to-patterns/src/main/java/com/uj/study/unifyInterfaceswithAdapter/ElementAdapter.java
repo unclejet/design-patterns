@@ -7,7 +7,7 @@ package com.uj.study.unifyInterfaceswithAdapter;
  * @modified By：
  * @version:
  */
-public class ElementAdapter {
+public class ElementAdapter implements XMLNode {
     private Element element;
     private Document document;
 
@@ -24,15 +24,23 @@ public class ElementAdapter {
         this.element = element;
     }
 
-    void addAttribute(String name, String value) {
+    @Override
+    public void add(XMLNode childNode) {
+        ElementAdapter childElement = (ElementAdapter)childNode;
+        getElement().appendChild(childElement.getElement());
+    }
+
+    @Override
+    public void addAttribute(String name, String value) {
         getElement().setAttribute(name, value);
+    }
+
+    @Override
+    public void addValue(String value) {
+        getElement().appendChild(document.createTextNode(value));
     }
 
     void add(ElementAdapter child) {
         getElement().appendChild(child.getElement());
-    }
-
-    void addValue(String value) {
-        getElement().appendChild(document.createTextNode(value));
     }
 }

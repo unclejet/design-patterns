@@ -308,3 +308,46 @@ public void addValue(String value) {
 getElement().appendChild(document.createTextNode(value));
    
 }
+
+
+## step 6-7
+Now I make ElementAdapter implement the XMLNode interface. This step is straightforward, except for a small change to the add(…) method to allow it to call the getElement() method, which is not part of the XMLNode interface:
+
+public class ElementAdapter 
+implements XMLNode...
+   public void add(XMLNode child) {
+      
+ElementAdapter childElement = (ElementAdapter)child;
+      getElement().appendChild(
+childElement.getElement());
+   }
+
+7. The final step is to update DOMBuilder so that all of its ElementAdapter fields, local variables, and parameters change their type to XMLNode:
+
+public class DOMBuilder extends AbstractBuilder...
+   private Document document;
+   private 
+XMLNode rootNode;
+   private 
+XMLNode parentNode;
+   private 
+XMLNode currentNode;
+
+   public void addChild(String childTagName) {
+      
+XMLNode childNode =
+         new ElementAdapter(document.createElement(childTagName), document);
+      ...
+   }
+
+   protected void init(String rootName) {
+      document = new DocumentImpl();
+      rootNode = new ElementAdapter(document.createElement(rootName), document);
+      document.appendChild(
+((ElementAdapter)rootNode).getElement());
+      ...
+   }
+
+At this point, by adapting Element in DOMBuilder, the code in XMLBuilder is so similar to that of DOMBuilder that it makes sense to pull up the similar code to AbstractBuilder. I achieve that by applying Form Template Method (205) and Introduce Polymorphic Creation with Factory Method (88). The following diagram shows the result.
+
+![R2P](./Screenshot from 2020-10-07 10-21-06.png)

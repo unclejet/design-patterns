@@ -162,3 +162,60 @@ getElement().appendChild(siblingNode
       history.pop();
       history.push(currentNode);
    }
+   
+## step4
+Now I create an adaptee invocation method for each adaptee method called by DOMBuilder. I use Extract Method [F] for this purpose, making sure that each extracted method takes an adaptee as an argument and uses that adaptee in its body:
+
+public class DOMBuilder extends AbstractBuilder...
+   public void addAttribute(String name, String value) {
+      
+addAttribute(currentNode, name, value);
+   }
+
+   
+private void addAttribute(ElementAdapter current, String name, String value) {
+      
+currentNode.getElement().setAttribute(name, value);
+   
+}
+
+   public void addChild(String childTagName) {
+      ElementAdapter childNode =
+         new ElementAdapter(document.createElement(childTagName));
+      
+add(currentNode, childNode);
+      parentNode = currentNode;
+      currentNode = childNode;
+      history.push(currentNode);
+   }
+
+   
+private void add(ElementAdapter parent, ElementAdapter child) {
+      
+parent.getElement().appendChild(child.getElement());
+   
+}
+
+   public void addSibling(String siblingTagName) {
+      if (currentNode == root)
+         throw new RuntimeException(CANNOT_ADD_BESIDE_ROOT);
+      ElementAdapter siblingNode =
+         new ElementAdapter(document.createElement(siblingTagName));
+      
+add(parentNode, siblingNode);
+      currentNode = siblingNode;
+      history.pop();
+      history.push(currentNode);
+   }
+
+   public void addValue(String value) {
+      
+addValue(currentNode, value);
+   }
+
+   
+private void addValue(ElementAdapter current, String value) {
+      
+currentNode.getElement().appendChild(document.createTextNode(value));
+   
+}

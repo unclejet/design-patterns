@@ -8,10 +8,12 @@ package com.uj.study.unifyInterfaceswithAdapter;
  * @version:
  */
 public class ElementAdapter {
-    Element element;
+    private Element element;
+    private Document document;
 
-    public ElementAdapter(Element element) {
+    public ElementAdapter(Element element, Document document) {
         this.element = element;
+        this.document = document;
     }
 
     public Element getElement() {
@@ -20,5 +22,17 @@ public class ElementAdapter {
 
     public void setElement(Element element) {
         this.element = element;
+    }
+
+    void addAttribute(String name, String value) {
+        getElement().setAttribute(name, value);
+    }
+
+    void add(ElementAdapter child) {
+        getElement().appendChild(child.getElement());
+    }
+
+    void addValue(String value) {
+        getElement().appendChild(document.createTextNode(value));
     }
 }

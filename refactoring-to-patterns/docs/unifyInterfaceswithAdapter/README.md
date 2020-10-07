@@ -219,3 +219,92 @@ private void addValue(ElementAdapter current, String value) {
 currentNode.getElement().appendChild(document.createTextNode(value));
    
 }
+
+## step5
+ I can now move each adaptee invocation method to ElementAdapter using Move Method [F]. I'd like the moved method to resemble the corresponding methods in the common interface, XMLNode, as much as possible. This is easy to do for every method except addValue(…), which I'll address in a moment. Here are the results after moving the addAttribute(…) and add(…) methods:
+
+public class ElementAdapter {
+   Element element;
+
+   public ElementAdapter(Element element) {
+      this.element = element;
+   }
+
+   public Element getElement() {
+      return element;
+   }
+
+   
+public void addAttribute(String name, String value) {
+      
+getElement().setAttribute(name, value);
+   
+}
+
+   
+public void add(ElementAdapter child) {
+      
+getElement().appendChild(child.getElement());
+   
+}
+}
+
+And here are examples of changes in DOMBuilder as a result of the move:
+
+public class DOMBuilder extends AbstractBuilder...
+   public void addAttribute(String name, String value) {
+      
+currentNode.addAttribute(name, value);
+   }
+
+   public void addChild(String childTagName) {
+      ElementAdapter childNode =
+         new ElementAdapter(document.createElement(childTagName));
+      
+currentNode.add(childNode);
+      parentNode = currentNode;
+      currentNode = childNode;
+      history.push(currentNode);
+   }
+
+   // etc.
+
+The addValue(…) method is more tricky to move to ElementAdapter because it relies on a field within ElementAdapter called document:
+
+public class DOMBuilder extends AbstractBuilder...
+   
+private Document document;
+
+   public void addValue(ElementAdapter current, String value) {
+      current.getElement().appendChild(
+document.createTextNode(value));
+   }
+
+I don't want to pass a field of type Document to the addValue(…) method on ElementAdapter because if I do so, that method will move further away from the target, which is the addValue(…) method on XMLNode:
+
+public interface XMLNode...
+   public abstract void addValue(String value);
+
+At this point I decide to pass an instance of Document to ElementAdapter via its constructor:
+
+public class ElementAdapter...
+   Element element;
+   
+Document document;
+
+   public ElementAdapter(Element element, 
+Document document) {
+      this.element = element;
+      
+this.document = document;
+   }
+
+And I make the necessary changes in DOMBuilder to call this updated constructor. Now I can easily move addValue(…):
+
+public class ElementAdapter...
+   
+public void addValue(String value) {
+      
+getElement().appendChild(document.createTextNode(value));
+   
+}

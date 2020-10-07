@@ -209,3 +209,135 @@ return permission.toString();
 
 The compiler and tests confirm that everything is still working.
 
+## step7
+I can now delete the type-unsafe field, state, SystemPermission calls to its private setter method, and the setter method itself:
+
+public class SystemPermission...
+   
+
+private String state;
+   private PermissionState permission;
+   private boolean granted;
+
+   public SystemPermission() {
+      
+
+setState(REQUESTED);
+      setState(PermissionState.REQUESTED);
+      granted = false;
+   }
+
+   public void claimed() {
+      if (getState().equals(REQUESTED)) 
+
+{
+         
+
+setState(CLAIMED);
+         setState(PermissionState.CLAIMED);
+      
+
+}
+   }
+
+   public void denied() {
+      if (getState().equals(CLAIMED)) 
+
+{
+         
+
+setState(DENIED);
+         setState(PermissionState.DENIED);
+      
+
+}
+   }
+
+   public void granted() {
+      if (!getState().equals(CLAIMED))
+         return;
+      
+
+setState(GRANTED);
+      setState(PermissionState.GRANTED);
+      granted = true;
+   }
+
+   
+
+private void setState(String state) {
+      
+
+this.state = state;
+   
+
+}
+
+
+I test that SystemPermission still works as usual. It does.
+
+## step8
+Now I replace all code that references SystemPermission's type-unsafe constants with code that references PermissionState's contant values. For example, SystemPermission's claimed() method still references the "REQUESTED" type-unsafe constant:
+
+public class SystemPermission...
+   public void claimed() {
+      if (getState().equals(REQUESTED))  // 
+equality logic with type-unsafe constant
+         setState(PermissionState.CLAIMED);
+   }
+
+I update this code as follows:
+
+public class SystemPermission...
+   public 
+PermissionState getState() {
+      return permission
+
+.toString();
+   }
+
+  public void claimed() {
+     if (getState().equals(
+PermissionState.REQUESTED)) {
+        setState(PermissionState.CLAIMED);
+  }
+
+I make similar changes throughout SystemPermission. In addition, I update all callers on getState() so that they now work exclusively with PermissionState constants. For example, here's a test method that requires updating:
+
+public class TestStates...
+   public void testClaimedBy() {
+      SystemPermission permission = new SystemPermission();
+      permission.claimed();
+      assertEquals(SystemPermission.CLAIMED, permission.getState());
+   }
+
+I change this code as follows:
+
+public class TestStates...
+   public void testClaimedBy() {
+      SystemPermission permission = new SystemPermission();
+      permission.claimed();
+      assertEquals(
+PermissionState.CLAIMED, permission.getState());
+   }
+
+After making similar changes throughout the code, I compile and test to confirm that the new type-safe equality logic works correctly.
+
+Finally, I can safely delete SystemPermission's type-unsafe constants because they are no longer being used:
+
+public class SystemPermission...
+   
+
+public final static String REQUESTED = "REQUESTED";
+   
+
+public final static String CLAIMED = "CLAIMED";
+   
+
+public final static String DENIED = "DENIED";
+   
+
+public final static String GRANTED = "GRANTED";
+
+
+Now SystemPermission's assignments to its permission field and all equality comparions with its permission field are type-safe.

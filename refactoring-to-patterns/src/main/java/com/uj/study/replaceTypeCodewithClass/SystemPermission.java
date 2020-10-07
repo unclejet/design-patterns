@@ -9,37 +9,26 @@ package com.uj.study.replaceTypeCodewithClass;
  */
 public class SystemPermission {
     private PermissionState permission;
-    private String state;
     private boolean granted;
 
-    public final static String REQUESTED = "REQUESTED";
-    public final static String CLAIMED = "CLAIMED";
-    public final static String DENIED = "DENIED";
-    public final static String GRANTED = "GRANTED";
-
-
     public SystemPermission() {
-        setState(REQUESTED);
         setState(PermissionState.REQUESTED);
         granted = false;
     }
 
 
     public void claimed() {
-        if (state.equals(REQUESTED))
-            setState(CLAIMED);
+        if (getState().equals(PermissionState.REQUESTED))
             setState(PermissionState.CLAIMED);
     }
 
     public void denied() {
-        if (state.equals(CLAIMED))
-            setState(DENIED);
+        if (getState().equals(PermissionState.CLAIMED))
             setState(PermissionState.DENIED);
     }
 
     public void granted() {
-        if (!state.equals(CLAIMED)) return;
-        setState(GRANTED);
+        if (!getState().equals(PermissionState.CLAIMED)) return;
         setState(PermissionState.GRANTED);
         granted = true;
     }
@@ -48,15 +37,11 @@ public class SystemPermission {
         return granted;
     }
 
-    private void setState(String state) {
-        this.state = state;
-    }
-
     private void setState(PermissionState permission) {
         this.permission = permission;
     }
 
-    public String getState() {
-        return permission.toString();
+    public PermissionState getState() {
+        return permission;
     }
 }

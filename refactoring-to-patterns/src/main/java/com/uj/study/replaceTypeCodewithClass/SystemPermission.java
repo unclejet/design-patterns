@@ -17,28 +17,32 @@ public class SystemPermission {
     public final static String GRANTED = "GRANTED";
 
     public SystemPermission() {
-        state = REQUESTED;
+        setState(REQUESTED);
         granted = false;
     }
 
     public void claimed() {
         if (state.equals(REQUESTED))
-            state = CLAIMED;
+            setState(CLAIMED);
     }
 
     public void denied() {
         if (state.equals(CLAIMED))
-            state = DENIED;
+            setState(DENIED);
     }
 
     public void granted() {
         if (!state.equals(CLAIMED)) return;
-        state = GRANTED;
+        setState(GRANTED);
         granted = true;
     }
 
     public boolean isGranted() {
         return granted;
+    }
+
+    private void setState(String state) {
+        this.state = state;
     }
 
     public String getState() {

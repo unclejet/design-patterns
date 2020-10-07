@@ -26,11 +26,11 @@ class SystemPermissionTest {
     @Test
     public void testGrantedBy() {
         permission.grantedBy(admin);
-        assertEquals(permission.REQUESTED, permission.state);
+        assertEquals(PermissionState.REQUESTED, permission.getState());
         assertEquals( false, permission.isGranted);
         permission.claimedBy(admin);
         permission.grantedBy(admin);
-        assertEquals( permission.GRANTED, permission.state);
+        assertEquals( PermissionState.GRANTED, permission.getState());
         assertEquals(true, permission.isGranted);
     }
 }

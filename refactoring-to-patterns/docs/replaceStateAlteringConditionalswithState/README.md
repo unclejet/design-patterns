@@ -141,3 +141,83 @@ isUnixPermisionDesiredButNotRequested()) {
   ...
 
 Although that's an improvement, SystemPermission now has lots of state-specific Boolean logic (e.g., methods like isUnixPermissionRequestedAndClaimed()), and the grantedBy() method still isn't simple. It's time to see how I simplify things by refactoring to the State pattern.
+
+## step1
+SystemPermission has a field called state, which is of type String. The first step is to change state's type to be a class by applying the refactoring Replace Type Code with Class (286). This yields the following new class:
+
+
+
+public class PermissionState {
+  
+private String name;
+
+  
+private PermissionState(String name) {
+    
+this.name = name;
+  
+}
+
+  
+public final static PermissionState REQUESTED = new PermissionState("REQUESTED");
+  
+public final static PermissionState CLAIMED = new PermissionState("CLAIMED");
+  
+public final static PermissionState GRANTED = new PermissionState("GRANTED");
+  
+public final static PermissionState DENIED = new PermissionState("DENIED");
+  
+public final static PermissionState UNIX_REQUESTED =
+    
+new PermissionState("UNIX_REQUESTED");
+  
+public final static PermissionState UNIX_CLAIMED = new PermissionState("UNIX_CLAIMED");
+
+  
+public String toString() {
+    
+return name;
+  
+}
+
+}
+
+
+The refactoring also replaces SystemPermission's state field with one called permissionState, which is of type PermissionState:
+
+public class SystemPermission...
+  
+private PermissionState permissionState;
+
+  public SystemPermission(SystemUser requestor, SystemProfile profile) {
+    ...
+    
+setPermission(PermissionState.REQUESTED);
+    ...
+  }
+
+  public 
+PermissionState getState() {
+    return 
+permissionState;
+  }
+
+  
+private void setState(PermissionState state) {
+    
+permissionState = state;
+  
+}
+
+  public void claimedBy(SystemAdmin admin) {
+    
+if (!getState().equals(PermissionState.REQUESTED)
+     
+&& !getState().equals(PermissionState.UNIX_REQUESTED))
+       
+return;
+    
+...
+  }
+
+  etc...

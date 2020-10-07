@@ -221,3 +221,16 @@ return;
   }
 
   etc...
+
+## step2
+PermissionState now contains six constants, all of which are instances of PermissionState. To make each of these constants an instance of a subclass of PermissionState, I apply Extract Subclass [F] six times to produce the result shown in the following diagram.
+
+![R2P](./Screenshot from 2020-10-08 07-42-06.png)
+
+
+Because no client will ever need to instantiate PermissionState, I declare it to be abstract:
+
+public 
+abstract class PermissionState...
+
+The compiler is happy with all of the new code, so I press on.

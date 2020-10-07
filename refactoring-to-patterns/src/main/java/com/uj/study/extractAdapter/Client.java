@@ -13,12 +13,11 @@ public class Client {
     public void loginToDatabase(String db, String user, String password) {
         try   {
             if (usingSDVersion52()) {
-                query = new Query();
-                query.login(db, user, password, getSD52ConfigFileName());  // Login to SD 5.2
+                query = new QuerySD52(getSD52ConfigFileName());
             } else {
                 query = new QuerySD51();
-                query.login(db, user, password); // Login to SD 5.1
             }
+            query.login(db, user, password); // Login to SD 5.1
 //      ...
         } catch(QueryException qe) {
 

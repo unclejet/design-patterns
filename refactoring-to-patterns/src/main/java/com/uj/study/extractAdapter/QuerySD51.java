@@ -7,7 +7,7 @@ package com.uj.study.extractAdapter;
  * @modified By：
  * @version:
  */
-public class QuerySD51 extends Query {
+public class QuerySD51 extends AbstractQuery {
     private SDLogin sdLogin;
     private SDSession sdSession;
 
@@ -15,6 +15,7 @@ public class QuerySD51 extends Query {
         super();
     }
 
+    @Override
     public void login(String server, String user, String password) throws QueryException {
         try {
             sdSession = sdLogin.loginSession(server, user, password);
@@ -27,10 +28,8 @@ public class QuerySD51 extends Query {
         }
     }
 
-    public void doQuery() throws QueryException {
-        if (sdQuery != null)
-            sdQuery.clearResultSet();
-        sdQuery = sdSession.createQuery(SDQuery.OPEN_FOR_QUERY);
-        executeQuery();
+    @Override
+    protected SDQuery createQuery() {
+        return sdSession.createQuery(SDQuery.OPEN_FOR_QUERY);
     }
 }

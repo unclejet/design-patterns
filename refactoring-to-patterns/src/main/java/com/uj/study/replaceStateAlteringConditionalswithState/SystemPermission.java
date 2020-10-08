@@ -13,15 +13,7 @@ public class SystemPermission {
     SystemAdmin admin;
     boolean isGranted;
     boolean isUnixPermissionGranted;
-    //    String state;
     private PermissionState permission;
-
-//    public final static String REQUESTED = "REQUESTED";
-//    public final static String CLAIMED = "CLAIMED";
-//    public final static String GRANTED = "GRANTED";
-//    public final static String DENIED = "DENIED";
-//    public final static String UNIX_REQUESTED = "UNIX_REQUESTED";
-//    public final static String UNIX_CLAIMED = "UNIX_CLAIMED";
 
     public SystemPermission(SystemUser requestor, SystemProfile profile) {
         this.requestor = requestor;

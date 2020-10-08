@@ -285,3 +285,110 @@ permission.setState(UNIX_CLAIMED);
 
 After I compile and test to see that the changes worked, I repeat this step for deniedBy() and grantedBy().
 
+## step4-5
+Now I choose a state that SystemPermission can enter and identify which PermissionState methods make this state transition to other states. I'll start with the REQUESTED state. This state can only transition to the CLAIMED state, and the transition happens in the PermissionState.claimedBy() method. I copy that method to the PermissionRequested class:
+
+class PermissionRequested extends PermissionState...
+  
+public void claimedBy(SystemAdmin admin, SystemPermission permission) {
+    
+if (!permission.getState().equals(REQUESTED) &&
+        
+!permission.getState().equals(UNIX_REQUESTED))
+      
+return;
+    
+permission.willBeHandledBy(admin);
+    
+if (permission.getState().equals(REQUESTED))
+      
+permission.setState(CLAIMED);
+    
+else if (permission.getState().equals(UNIX_REQUESTED)) {
+      
+permission.setState(UNIX_CLAIMED);
+    
+}
+  
+}
+}
+
+A lot of logic in this method is no longer needed. For example, anything related to the UNIX_REQUESTED state isn't needed because we're only concerned with the REQUESTED state in the PermissionRequested class. We also don't need to check whether our current state is REQUESTED because the fact that we're in the PermissionRequested class tells us that. So I can reduce this code to the following:
+
+class PermissionRequested extends Permission...
+  public void claimedBy(SystemAdmin admin, SystemPermission permission) {
+    
+permission.willBeHandledBy(admin);
+    
+permission.setState(CLAIMED);
+  }
+}
+
+As always, I compile and test to make sure I didn't break anything. Now I repeat this step for the other five states. Let's look at what is required to produce the PermissionClaimed and PermissionGranted states.
+
+The CLAIMED state can transition to DENIED, GRANTED, or UNIX REQUESTED. The deniedBy() or grantedBy() methods take care of these transitions, so I copy those methods to the PermissionClaimed class and delete unnecessary logic:
+
+class PermissionClaimed extends PermissionState...
+  public void deniedBy(SystemAdmin admin, SystemPermission permission) {
+    
+
+if (!permission.getState().equals(CLAIMED) &&
+        
+
+!permission.getState().equals(UNIX_CLAIMED))
+      
+
+return;
+    if (!permission.getAdmin().equals(admin))
+      return;
+    permission.setIsGranted(false);
+    permission.setIsUnixPermissionGranted(false);
+    permission.setState(DENIED);
+    permission.notifyUserOfPermissionRequestResult();
+  }
+
+  public void grantedBy(SystemAdmin admin, SystemPermission permission) {
+    
+
+if (!permission.getState().equals(CLAIMED) &&
+        !
+
+permission.getState().equals(UNIX_CLAIMED))
+      
+
+return;
+    if (!permission.getAdmin().equals(admin))
+      return;
+
+    
+
+if (permission.getProfile().isUnixPermissionRequired()
+     
+
+&& permission.getState().equals(UNIX_CLAIMED))
+      
+
+permission.setIsUnixPermissionGranted(true);
+    
+
+elseif (permission.getProfile().isUnixPermissionRequired()
+         && !permission.isUnixPermissionGranted()) {
+      permission.setState(UNIX_REQUESTED);
+      permission.notifyUnixAdminsOfPermissionRequest();
+      return;
+    }
+    permission.setState(GRANTED);
+    permission.setIsGranted(true);
+    permission.notifyUserOfPermissionRequestResult();
+  }
+
+For PermissionGranted, my job is easy. Once a SystemPermission reaches the GRANTED state, it has no further states it can transition to (i.e., it's at an end state). So this class doesn't need to implement any transition methods (e.g., claimedBy()). In fact, it really needs to inherit empty implementations of the transition methods, which is exactly what will happen after the next step in the refactoring.
+
+5.In PermissionState, I can now delete the bodies of claimedBy(), deniedBy(), and grantedBy(), leaving the following:
+
+abstract class PermissionState {
+  public String toString();
+  public void claimedBy(SystemAdmin admin, SystemPermission permission) {}
+  public void deniedBy(SystemAdmin admin, SystemPermission permission) {}
+  public void grantedBy(SystemAdmin admin, SystemPermission permission) {}
+}

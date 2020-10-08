@@ -185,3 +185,68 @@ public void doMouseClick(String imageMapName, String APID) {
 
 
 The above code compiled with no difficulties.
+
+## step4-6
+Then we initialized mouseEventHandler, the field referenced in the null check within the NavigationApplet class, to an instance of the NullMouseEventHandler:
+
+public class NavigationApplet extends Applet...
+  private MouseEventHandler mouseEventHandler 
+= new NullMouseEventHandler(null);
+
+
+The null that was passed to the NullMouseEventHandler's constructor forwarded to the constructor of its superclass, MouseEventHandler. Because we didn't like passing such nulls around, we altered NullMouseEventHandler's constructor to do this work:
+
+public class NullMouseEventHandler extends MouseEventHandler {
+  public NullMouseEventHandler(
+
+Context context) {
+    
+super(null);
+  }
+}
+
+public class NavigationApplet extends Applet...
+  private MouseEventHandler mouseEventHandler 
+= new NullMouseEventHandler();
+
+
+5. Next came the fun part. We deleted all occurrences of the null check in such classes as NavigationApplet:
+
+public class NavigationApplet extends Applet...
+  public boolean mouseMove(Event event, int x, int y) {
+    
+
+if (mouseEventHandler != null)
+      return mouseEventHandler.mouseMove(graphicsContext, event, x, y );
+    
+
+return true;
+  }
+
+  public boolean mouseDown(Event event, int x, int y) {
+    
+
+if (mouseEventHandler != null)
+      return mouseEventHandler.mouseDown(graphicsContext, event, x, y);
+    
+
+return true;
+  }
+
+  public boolean mouseUp(Event event, int x, int y) {
+    
+
+if (mouseEventHandler != null)
+      return mouseEventHandler.mouseUp(graphicsContext, event, x, y);
+    
+
+return true;
+  }
+
+  // etc.
+
+After doing that, we compiled and tested whether the changes worked. In this case, we had no automated tests, so we had to run the Web site in a browser and try repeatedly to cause problems with our mouse as the NavigationApplet applet started up and began running. Everything worked well.
+
+6. We repeated steps 4 and 5 for other classes that featured the same null check until it had been completely eliminated from all classes that originally contained it.
+
+Because our system used only two instances of the NullMouseEventHandler, we did not make it a Singleton [DP].

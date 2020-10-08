@@ -9,8 +9,8 @@ package com.uj.study.introduceNullObject;
  */
 public class NullMouseEventHandler extends MouseEventHandler {
 
-    public NullMouseEventHandler(Context context) {
-        super(context);
+    public NullMouseEventHandler() {
+        super(null);
     }
 
     @Override

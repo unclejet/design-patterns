@@ -8,38 +8,22 @@ package com.uj.study.introduceNullObject;
  * @version:
  */
 public class NavigationApplet extends Applet {
-    private MouseEventHandler mouseEventHandler;
+    private MouseEventHandler mouseEventHandler = new NullMouseEventHandler();
     private GraphicsContext graphicsContext;
 
     public boolean mouseMove(Event event, int x, int y) {
-
-        if (mouseEventHandler != null)
-            return mouseEventHandler.mouseMove(graphicsContext, event, x, y );
-
-        return true;
+        return mouseEventHandler.mouseMove(graphicsContext, event, x, y);
     }
 
     public boolean mouseDown(Event event, int x, int y) {
-
-        if (mouseEventHandler != null)
-            return mouseEventHandler.mouseDown(graphicsContext, event, x, y );
-
-        return true;
+        return mouseEventHandler.mouseDown(graphicsContext, event, x, y);
     }
 
     public boolean mouseUp(Event event, int x, int y) {
-
-        if (mouseEventHandler != null)
-            return mouseEventHandler.mouseUp(graphicsContext, event, x, y );
-
-        return true;
+        return mouseEventHandler.mouseUp(graphicsContext, event, x, y);
     }
 
     public boolean mouseExit(Event event, int x, int y) {
-
-        if (mouseEventHandler != null)
-            return mouseEventHandler.mouseExit(graphicsContext, event, x, y );
-
-        return true;
+        return mouseEventHandler.mouseExit(graphicsContext, event, x, y);
     }
 }

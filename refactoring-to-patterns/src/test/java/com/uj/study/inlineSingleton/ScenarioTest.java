@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class ScenarioTest {
     @Test
     public void testDealerStandsWhenPlayerBusts() {
-        Console.setPlayerResponse(new TestAlwaysHitResponse());
         int[] deck = { 10, 9, 7, 2, 6 };
         Blackjack blackjack = new Blackjack(deck);
+        blackjack.setPlayerResponse(new TestAlwaysHitResponse());
         blackjack.play();
 //        assertTrue(blackjack.didDealerWin(), "dealer wins");
 //        assertTrue(!blackjack.didPlayerWin(), "player loses");

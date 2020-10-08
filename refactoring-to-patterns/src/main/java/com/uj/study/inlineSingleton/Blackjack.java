@@ -26,8 +26,7 @@ public class Blackjack {
         HitStayResponse hitStayResponse;
         do {
             write("H)it or S)tay: ");
-            hitStayResponse =
-                    Console.obtainHitStayResponse(input);
+            hitStayResponse = obtainHitStayResponse(input);
             write(hitStayResponse.toString());
             if (hitStayResponse.shouldHit()) {
                 dealCardTo(player);
@@ -36,6 +35,20 @@ public class Blackjack {
         }
         while (canPlayerHit(hitStayResponse));
         // ...
+    }
+
+    public
+    HitStayResponse obtainHitStayResponse(BufferedReader input) {
+
+        return Console.obtainHitStayResponse(input);
+
+    }
+
+    public
+    void setPlayerResponse(HitStayResponse newHitStayResponse) {
+
+        Console.setPlayerResponse(newHitStayResponse);
+
     }
 
     private boolean canPlayerHit(HitStayResponse hitStayResponse) {

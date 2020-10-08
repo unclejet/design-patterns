@@ -234,3 +234,54 @@ public
 abstract class PermissionState...
 
 The compiler is happy with all of the new code, so I press on.
+
+## step3
+Next, I find a method on SystemPermission that changes the value of permission based on state transition logic. There are three such methods in SystemPermission: claimedBy(), deniedBy(), and grantedBy(). I start by working with claimedBy(). I must copy this method to PermissionState, making enough changes to get it to compile and then replacing the body of the original claimedBy() method with a call to the new PermissionState version:
+
+public class SystemPermission...
+  
+
+private void setState(PermissionState state) { 
+// now has package-level visibility
+    permissionState = state;
+  }
+
+  public void claimedBy(SystemAdmin admin) {
+    
+state.claimedBy(admin, this);
+  }
+
+  
+void willBeHandledBy(SystemAdmin admin) {
+    
+this.admin = admin;
+  
+}
+
+abstract class PermissionState...
+  
+public void claimedBy(SystemAdmin admin, SystemPermission permission) {
+    
+if (!permission.getState().equals(REQUESTED) &&
+        
+!permission.getState().equals(UNIX_REQUESTED))
+      
+return;
+    
+permission.willBeHandledBy(admin);
+    
+if (permission.getState().equals(REQUESTED))
+      
+permission.setState(CLAIMED);
+    
+else if (permission.getState().equals(UNIX_REQUESTED)) {
+      
+permission.setState(UNIX_CLAIMED);
+    
+}
+  
+}
+
+
+After I compile and test to see that the changes worked, I repeat this step for deniedBy() and grantedBy().
+

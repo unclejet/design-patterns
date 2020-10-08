@@ -2,31 +2,34 @@ package com.uj.study.introduceNullObject;
 
 /**
  * @author ：unclejet
- * @date ：Created in 2020/10/9 上午6:12
+ * @date ：Created in 2020/10/9 上午6:14
  * @description：
  * @modified By：
  * @version:
  */
-public class MouseEventHandler {
-    private Context context;
+public class NullMouseEventHandler extends MouseEventHandler {
 
-    public MouseEventHandler(Context context) {
-        this.context = context;
+    public NullMouseEventHandler(Context context) {
+        super(context);
     }
 
+    @Override
     public boolean mouseMove(GraphicsContext graphicsContext, Event event, int x, int y) {
-        return false;
+        return true;
     }
 
+    @Override
     public boolean mouseDown(GraphicsContext graphicsContext, Event event, int x, int y) {
-        return false;
+        return true;
     }
 
+    @Override
     public boolean mouseUp(GraphicsContext graphicsContext, Event event, int x, int y) {
-        return false;
+        return true;
     }
 
+    @Override
     public boolean mouseExit(GraphicsContext graphicsContext, Event event, int x, int y) {
-        return false;
+        return true;
     }
 }

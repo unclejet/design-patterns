@@ -112,3 +112,76 @@ public void doMouseClick(String imageMapName, String APID) {
 
 The above code compiled with no difficulties.
 
+## step1-3
+We applied Extract Subclass [F] to define NullMouseEventHandler, a subclass of our own mouse event handler:
+
+
+
+public class NullMouseEventHandler extends MouseEventHandler {
+  
+public NullMouseEventHandler(Context context) {
+    
+super(context);
+  
+}
+
+}
+
+
+That code compiled just fine, so we moved on.
+
+2. Next, we found a null check, like this one:
+
+public class NavigationApplet extends Applet...
+  public boolean mouseMove(Event event, int x, int y) {
+    if (mouseEventHandler != null)  
+// null check
+      return mouseEventHandler.mouseMove(graphicsContext, event, x, y);
+    return true;
+  }
+
+The method invoked in the above null check is mouseEventHandler.mouseMove(…). The code invoked if mouseEventHandler equals null is the code that the mechanics direct us to implement in an overridden mouseMove(…) method on NullMouseEventHandler. That was easily implemented:
+
+public class NullMouseEventHandler...
+  
+public boolean mouseMove(MetaGraphicsContext mgc, Event event, int x, int y) {
+
+    
+return true;
+  
+}
+
+
+The new method compiled with no problems.
+
+3. We repeated step 2 for all other occurrences of the null check in our code. We found the null check in numerous methods on three different classes. When we completed this step, NullMouseEventHandler had many new methods. Here are a few of them:
+
+public class NullMouseEventHandler...
+  
+public boolean mouseDown(MetaGraphicsContext mgc, Event event, int x, int y) {
+    
+return true;
+  
+}
+
+  
+public boolean mouseUp(MetaGraphicsContext mgc, Event event, int x, int y) {
+    
+return true;
+  
+}
+
+  
+public boolean mouseEnter(MetaGraphicsContext mgc, Event event, int x, int y) {
+    
+return true;
+  
+}
+
+  
+public void doMouseClick(String imageMapName, String APID) {
+  
+}
+
+
+The above code compiled with no difficulties.

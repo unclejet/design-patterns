@@ -101,3 +101,98 @@ System.out.println("E");
 
 TextTestResult now notifies its TestRunner, which reports information to the screen. I compile and test to confirm that the changes work.
 
+## step 2
+Now I want to create an observer interface called TestListener. To create that interface, I apply Extract Interface [F] on the TestRunner associated with the TextTestResult. When choosing what methods to include in the new interface, I must know which methods TextTestResult calls on TestRunner. Those methods are highlighted in bold in the following listing:
+
+class TextTestResult extends TestResult...
+   public synchronized void addError(Test test, Throwable t) {
+      super.addError(test, t);
+      
+fRunner.addError(this, test, t);
+   }
+
+   public synchronized void addFailure(Test test, Throwable t) {
+      super.addFailure(test, t);
+      
+fRunner.addFailure(this, test, t);
+   }
+
+   public synchronized void endTest(Test test) {
+      super.endTest(test);
+      
+fRunner.endTest(this, test);
+   }
+
+   public synchronized void startTest(Test test) {
+      super.startTest(test);
+      
+fRunner.startTest(this, test);
+   }
+
+Given this information, I extract the following interface:
+
+
+
+public interface TestListener {
+   
+public void addError(TestResult testResult, Test test, Throwable t);
+   
+public void addFailure(TestResult testResult, Test test, Throwable t);
+   
+public void startTest(TestResult testResult, Test test);
+
+}
+
+public class TestRunner 
+implements TestListener...
+
+Now I inspect the other notifier, UITestResult, to see if it calls TestRunner methods that are not on the TestListener interface. It does—it overrides a TestResult method called endTest(…):
+
+package ui;
+class UITestResult extends TestResult...
+   public synchronized void endTest(Test test) {
+      super.endTest(test);
+      
+fRunner.endTest(this, test);
+   }
+
+That leads me to update TestListener with the additional method:
+
+public interface TestListener...
+   
+public void endTest(TestResult testResult, Test test);
+
+
+I compile to confirm that everything works fine. However, it doesn't work because the TestRunner for TextTestResult implements the TestListener interface and does not declare the method endTest(…). No problem; I simply add that method to the TestRunner to make everything run:
+
+public class TestRunner implements TestListener...
+   
+public void endTest(TestResult testResult, Test test) {
+   
+}
+
+## step 3
+Now I must make UITestResult's associated TestRunner implement TestListener and also make both TextTestResult and UITestResult communicate with their TestRunner instances using the TestListener interface. Here are a few of the changes:
+
+public class TestRunner extends Frame 
+implements TestListener...
+
+class UITestResult extends TestResult...
+   protected 
+TestListener fRunner;
+
+   UITestResult(
+TestListener runner) {
+      fRunner= runner;
+   }
+
+public class TextTestResult extends TestResult...
+   protected 
+TestListener fRunner;
+
+   TextTestResult(
+TestListener runner) {
+      fRunner= runner;
+   }
+
+I compile and test to confirm that these changes work.

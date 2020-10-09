@@ -8,8 +8,8 @@ package com.uj.study.replaceHardCodedNotificationswithObserver;
  * @version:
  */
 public class UITestResult extends TestResult {
-    private TestRunner fRunner;
-    UITestResult(TestRunner runner) {
+    private TestListener fRunner;
+    UITestResult(TestListener runner) {
         fRunner= runner;
     }
 

@@ -15,4 +15,12 @@ public class TestResult {
     protected void addError(Test test, Throwable t) {
 
     }
+
+    protected void endTest(Test test) {
+
+    }
+
+    protected void startTest(Test test) {
+
+    }
 }

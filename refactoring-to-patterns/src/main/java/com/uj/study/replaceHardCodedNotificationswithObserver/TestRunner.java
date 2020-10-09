@@ -7,7 +7,7 @@ package com.uj.study.replaceHardCodedNotificationswithObserver;
  * @modified By：
  * @version:
  */
-public class TestRunner extends Frame {
+public class TestRunner extends Frame implements TestListener {
     // TestRunner for AWT
     private TestResult fTestResult;
     private TestSuite testSuite;
@@ -35,5 +35,12 @@ public class TestRunner extends Frame {
 
     public void addError(TestResult testResult, Test test, Throwable t) {
         System.out.println("E");
+    }
+
+    public void endTest(TestResult testResult, Test test) {
+    }
+
+    public void startTest(TestResult testResult, Test test) {
+
     }
 }

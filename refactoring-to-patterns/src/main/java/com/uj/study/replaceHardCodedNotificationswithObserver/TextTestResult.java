@@ -8,19 +8,33 @@ package com.uj.study.replaceHardCodedNotificationswithObserver;
  * @version:
  */
 public class TextTestResult extends TestResult {
-    private TestRunner fRunner;
+    private TestListener fRunner;
 
-    TextTestResult(TestRunner runner) {
+    TextTestResult(TestListener runner) {
         fRunner= runner;
     }
 
     public synchronized void addError(Test test, Throwable t) {
         super.addError(test, t);
+
         fRunner.addError(this, test, t);
     }
 
     public synchronized void addFailure(Test test, Throwable t) {
         super.addFailure(test, t);
-        System.out.print("F");
+
+        fRunner.addFailure(this, test, t);
+    }
+
+    public synchronized void endTest(Test test) {
+        super.endTest(test);
+
+        fRunner.endTest(this, test);
+    }
+
+    public synchronized void startTest(Test test) {
+        super.startTest(test);
+
+        fRunner.startTest(this, test);
     }
 }

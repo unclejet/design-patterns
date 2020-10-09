@@ -17,6 +17,11 @@ public class TestRunner extends Frame {
         return new UITestResult(this);   // hard-coded to UITestResult
     }
 
+//    protected TextTestResult createTestResult() {
+//        return new TextTestResult(
+//                this);
+//    }
+
     synchronized public void runSuite() {
 //      ...
         fTestResult = createTestResult();
@@ -26,5 +31,9 @@ public class TestRunner extends Frame {
     public void addFailure(TestResult result, Test test, Throwable t) {
 //      ...
 // display the failure in a graphical AWT window
+    }
+
+    public void addError(TestResult testResult, Test test, Throwable t) {
+        System.out.println("E");
     }
 }

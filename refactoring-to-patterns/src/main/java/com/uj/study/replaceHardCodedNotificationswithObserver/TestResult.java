@@ -1,5 +1,8 @@
 package com.uj.study.replaceHardCodedNotificationswithObserver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author ：unclejet
  * @date ：Created in 2020/10/10 上午6:47
@@ -8,19 +11,40 @@ package com.uj.study.replaceHardCodedNotificationswithObserver;
  * @version:
  */
 public class TestResult {
-    protected void addFailure(Test test, Throwable t) {
+    private List fFailures;
+    private List fErrors;
+    private int fRunTests;
+    private boolean fStop;
+    protected TestListener fRunner;
 
+    public TestResult(TestListener runner) {
+        this();
+        fRunner= runner;
     }
 
-    protected void addError(Test test, Throwable t) {
-
+    public TestResult() {
+        fFailures = new ArrayList(10);
+        fErrors = new ArrayList(10);
+        fRunTests = 0;
+        fStop = false;
     }
 
-    protected void endTest(Test test) {
-
+    public synchronized void addError(Test test, Throwable t) {
+        //fErrors.add(new TestFailure(test, t));
+        fRunner.addError(this, test, t);
     }
 
-    protected void startTest(Test test) {
+    public synchronized void addFailure(Test test, Throwable t) {
+        //fFailures.add(new TestFailure(test, t));
+        fRunner.addFailure(this, test, t);
+    }
 
+    public synchronized void endTest(Test test) {
+        fRunner.endTest(this, test);
+    }
+
+    public synchronized void startTest(Test test) {
+        fRunTests++;
+        fRunner.startTest(this, test);
     }
 }

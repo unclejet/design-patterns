@@ -196,3 +196,60 @@ TestListener runner) {
    }
 
 I compile and test to confirm that these changes work.
+
+## step4
+Now I apply Pull Up Method [F] on every notification method in TextTestResult and UITestResult. This step is tricky because the methods I'll be pulling up already exist on TestResult, the superclass of TextTestResult and UITestResult. To do this correctly, I need to merge code from the TestResult subclasses into TestResult. This yields the following changes:
+
+public class TestResult...
+   
+protected TestListener fRunner;
+
+   
+public TestResult(TestListener runner) {
+      
+this();
+      
+fRunner= runner;
+   
+}
+
+   public TestResult() {
+      fFailures= new Vector(10);
+      fErrors= new Vector(10);
+      fRunTests= 0;
+      fStop= false;
+   }
+
+   public synchronized void addError(Test test, Throwable t) {
+      fErrors.addElement(new TestFailure(test, t));
+      
+fRunner.addError(this, test, t);
+   }
+
+   public synchronized void addFailure(Test test, Throwable t) {
+      fFailures.addElement(new TestFailure(test, t));
+      
+fRunner.addFailure(this, test, t);
+   }
+
+   public synchronized void endTest(Test test) {
+      
+fRunner.endTest(this, test);
+   }
+
+   public synchronized void startTest(Test test) {
+      fRunTests++;
+      
+fRunner.startTest(this, test);
+   }
+
+package ui;
+class UITestResult extends TestResult {
+}
+
+package textui;
+class TextTestResult extends TestResult {
+}
+
+These changes pass the compiler with no problems.
+

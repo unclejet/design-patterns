@@ -1,6 +1,7 @@
 package com.uj.study.replaceHardCodedNotificationswithObserver;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -15,11 +16,10 @@ public class TestResult {
     private List fErrors;
     private int fRunTests;
     private boolean fStop;
-    protected TestListener fRunner;
+    private List observers = new ArrayList();
 
     public TestResult(TestListener runner) {
         this();
-        fRunner= runner;
     }
 
     public TestResult() {
@@ -29,22 +29,38 @@ public class TestResult {
         fStop = false;
     }
 
+    public void addObserver(TestListener testListener) {
+        observers.add(testListener);
+    }
+
     public synchronized void addError(Test test, Throwable t) {
         //fErrors.add(new TestFailure(test, t));
-        fRunner.addError(this, test, t);
+        for (Iterator i = observers.iterator(); i.hasNext();) {
+            TestListener observer = (TestListener)i.next();
+            observer.addError(this, test, t);
+        }
     }
 
     public synchronized void addFailure(Test test, Throwable t) {
         //fFailures.add(new TestFailure(test, t));
-        fRunner.addFailure(this, test, t);
+        for (Iterator i = observers.iterator(); i.hasNext();) {
+            TestListener observer = (TestListener)i.next();
+            observer.addFailure(this, test, t);
+        }
     }
 
     public synchronized void endTest(Test test) {
-        fRunner.endTest(this, test);
+        for (Iterator i = observers.iterator(); i.hasNext();) {
+            TestListener observer = (TestListener)i.next();
+            observer.endTest(this, test);
+        }
     }
 
     public synchronized void startTest(Test test) {
         fRunTests++;
-        fRunner.startTest(this, test);
+        for (Iterator i = observers.iterator(); i.hasNext();) {
+            TestListener observer = (TestListener)i.next();
+            observer.startTest(this, test);
+        }
     }
 }

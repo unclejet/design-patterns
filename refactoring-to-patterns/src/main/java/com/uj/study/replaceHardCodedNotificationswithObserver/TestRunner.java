@@ -14,13 +14,10 @@ public class TestRunner extends Frame implements TestListener {
 //   ...
 
     protected TestResult createTestResult() {
-        return new UITestResult(this);   // hard-coded to UITestResult
+        TestResult testResult = new TestResult();
+        testResult.addObserver(this);
+        return testResult;
     }
-
-//    protected TextTestResult createTestResult() {
-//        return new TextTestResult(
-//                this);
-//    }
 
     synchronized public void runSuite() {
 //      ...

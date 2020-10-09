@@ -253,3 +253,106 @@ class TextTestResult extends TestResult {
 
 These changes pass the compiler with no problems.
 
+## step 5
+I can now update the TestRunner instances to work directly with TestResult. For example, here is a change I make to textui.TestRunner:
+
+package textui;
+public class TestRunner implements TestListener...
+   protected 
+TestResult createTestResult() {
+      return 
+new TestResult(this);
+   }
+
+   protected void doRun(Test suite, boolean wait)...
+      
+TestResult result= createTestResult();
+
+I make a similar change for ui.TestRunner. Finally, I delete both TextTestResult and UITestResult. I compile and test. The compile is fine, yet the tests fail miserably!
+
+I do some exploring and a little debugging. I discover that my changes to TestResult can cause a null pointer exception when the fRunner field isn't initialized. That circumstance occurs only when TestResult's original constructor is called because it doesn't initialize fRunner. I correct this problem by insulating all calls to fRunner with the following conditional logic:
+
+public class TestResult...
+   public synchronized void addError(Test test, Throwable t) {
+      fErrors.addElement(new TestFailure(test, t));
+      
+if (null != fRunner)
+         fRunner.addError(this, test, t);
+   }
+
+   public synchronized void addFailure(Test test, Throwable t) {
+      fFailures.addElement(new TestFailure(test, t));
+      
+if (null != fRunner)
+         fRunner.addFailure(this, test, t);
+   }
+
+   // etc.
+
+The tests now pass and I'm happy again. The two TestRunners are now observers of the subject, TestResult. At this point I can delete both TextTestResult and UITestResult because they are no longer being used.
+
+## step 6
+The final step involves updating TestResult so it can hold onto and notify one or many observers. I declare a List of observers like so:
+
+public class TestResult...
+   
+private List observers = new ArrayList();
+
+
+Then I supply a method by which observers can add themselves to the observers list:
+
+public class TestResult...
+   
+public void addObserver(TestListener testListener) {
+      
+observers.add(testListener);
+   
+}
+
+
+Next, I update TestResult's notification methods so they work with the list of observers. Here's one such update:
+
+public class TestResult...
+   public synchronized void addError(Test test, Throwable t) {
+      fErrors.addElement(new TestFailure(test, t));
+      
+for (Iterator i = observers.iterator();i.hasNext();) {
+            
+TestListener observer = (TestListener)i.next();
+            
+observer.addError(this, test, t);
+      
+}
+   }
+
+Finally, I update the TestRunner instances so they use the new addObserver() method rather than calling a TestResult constructor. Here's the change I make to the textui.TestRunner class:
+
+package textui;
+public class TestRunner implements TestListener...
+   protected TestResult createTestResult() {
+      
+TestResult testResult = new TestResult();
+      
+testResult.addObserver(this);
+      
+return testResult;
+   }
+
+After compiling and testing that these changes work, I can delete the now unused constructor in TestResult:
+
+public class TestResult...
+   
+
+public TestResult(TestListener runner) {
+      
+
+this();
+      
+
+fRunner= runner;
+   
+
+}
+
+
+That completes the refactoring to the Observer pattern. Now, TestResult notifications are no longer hard-coded to specific TestRunner instances, and TestResult can handle one or many observers of its results.

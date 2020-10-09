@@ -10,12 +10,14 @@ package com.uj.study.limitInstantiationwithSingleton;
 public class PermissionRequested extends PermissionState {
     public static final String NAME= "REQUESTED";
 
+    private static PermissionState state = new PermissionRequested();
+
     public String name() {
         return NAME;
     }
 
     public static PermissionState state() {
-        return new PermissionRequested();
+        return state;
     }
 
     public PermissionRequested() {

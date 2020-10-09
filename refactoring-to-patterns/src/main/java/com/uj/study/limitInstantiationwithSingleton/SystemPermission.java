@@ -18,7 +18,7 @@ public class SystemPermission {
     public SystemPermission(SystemUser requestor, SystemProfile profile) {
         this.requestor = requestor;
         this.profile = profile;
-        setState(new PermissionRequested("REQUESTED"));
+        setState(PermissionRequested.state());
         isGranted = false;
         notifyAdminOfPermissionRequest();
     }

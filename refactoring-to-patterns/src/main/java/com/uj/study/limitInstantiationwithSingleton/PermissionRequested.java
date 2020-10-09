@@ -8,12 +8,22 @@ package com.uj.study.limitInstantiationwithSingleton;
  * @version:
  */
 public class PermissionRequested extends PermissionState {
-    public PermissionRequested(String requested) {
-        super(requested);
+    public static final String NAME= "REQUESTED";
+
+    public String name() {
+        return NAME;
+    }
+
+    public static PermissionState state() {
+        return new PermissionRequested();
+    }
+
+    public PermissionRequested() {
+        super(NAME);
     }
 
     public void claimedBy(SystemAdmin admin, SystemPermission permission) {
         permission.willBeHandledBy(admin);
-        permission.setState(new PermissionClaimed("CLAIMED"));
+        permission.setState(new PermissionClaimed());
     }
 }

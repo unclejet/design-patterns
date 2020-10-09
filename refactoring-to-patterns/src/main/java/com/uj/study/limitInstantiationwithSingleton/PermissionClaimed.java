@@ -8,8 +8,10 @@ package com.uj.study.limitInstantiationwithSingleton;
  * @version:
  */
 public class PermissionClaimed extends PermissionState {
-    public PermissionClaimed(String claimed) {
-        super(claimed);
+    public static final String NAME= "CLAIMED";
+
+    public PermissionClaimed() {
+        super(NAME);
     }
 
     public void deniedBy(SystemAdmin admin, SystemPermission permission) {

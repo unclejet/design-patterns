@@ -8,7 +8,4 @@ package com.uj.study.moveCreationKnowledgetoFactory;
  * @version:
  */
 public class Parser {
-    public boolean shouldDecodeNodes() {
-        return false;
-    }
 }

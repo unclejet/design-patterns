@@ -55,3 +55,255 @@ public class StringNode...
     return new StringNode(textBuffer, textBegin, textEnd);
   }
   
+## step 2-3
+Now I create a new class that will become a factory for StringNode objects. Because a StringNode is a type of Node, I name the class NodeFactory:
+
+public class NodeFactory {
+}
+
+3. Next, I apply Move Method [F] to move StringNode's Creation Method to NodeFactory. I decide to make the moved method nonstatic because I don't want client code statically bound to one Factory implementation. I also decide to delete the Creation Method in StringNode:
+
+public class NodeFactory {
+  
+public 
+static 
+Node createStringNode(
+    
+StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+    
+if (shouldDecode)
+      
+return new DecodingStringNode(
+        
+new StringNode(textBuffer, textBegin, textEnd));
+    
+return new StringNode(textBuffer, textBegin, textEnd);
+  
+}
+}
+
+public class StringNode...
+  
+
+public static Node createStringNode(...
+  
+
+}
+
+
+After this step, StringParser and other clients that used to call the StringNode's Creation Method no longer compile. I'll fix that next.
+
+## step4
+Now I modify the StringParser to instantiate a NodeFactory and call it to create a StringNode:
+
+public class StringParser...
+  public Node find(...) {
+   ...
+   
+NodeFactory nodeFactory = new NodeFactory();
+   return 
+nodeFactory.createStringNode(
+     textBuffer, textBegin, textEnd, parser.shouldDecodeNodes()
+   );
+  }
+
+I perform a similar step for any other clients that no longer compile because of work done in step 3.
+
+## step 5
+Now comes the fun part: eliminating or reducing creation sprawl by moving the appropriate creation code from other classes into the NodeFactory. In this case the other class is the Parser, which the StringParser calls to pass an argument to the NodeFactory during StringNode creation:
+
+public class StringParser...
+  public Node find(...) {
+    ...
+    NodeFactory nodeFactory = new NodeFactory();
+    return nodeFactory.createStringNode(
+      textBuffer, textBegin, textEnd, 
+parser.shouldDecodeNodes()
+    );
+  }
+
+I'd like to move the following Parser code to the NodeFactory:
+
+public class Parser...
+  private boolean shouldDecodeNodes = false;
+
+  public void setNodeDecoding(boolean shouldDecodeNodes) {
+    this.shouldDecodeNodes = shouldDecodeNodes;
+  }
+
+  public boolean shouldDecodeNodes() {
+    return shouldDecodeNodes;
+  }
+
+However, I can't simply move this code into the NodeFactory because clients of this code are clients of the parser, which call Parser methods like setNodeDecoding(…) to configure the parser for a given parse. Meanwhile, NodeFactory is not even visible to parser clients: it is instantiated by StringParser, which itself is not visible to parser clients. This leads me to conclude that the NodeFactory instance must be accessible to both Parser clients and the StringParser. To make that happen, I take the following steps.
+
+a. I first apply Extract Class [F] on the Parser code I want to eventually merge with the NodeFactory. This leads to the creation of the String-NodeParsingOption class:
+
+
+
+public class StringNodeParsingOption {
+  
+private boolean decodeStringNodes;
+
+  
+public boolean shouldDecodeStringNodes() {
+    
+return decodeStringNodes;
+  
+}
+
+  
+public void setDecodeStringNodes(boolean decodeStringNodes) {
+    
+this.decodeStringNodes = decodeStringNodes;
+  
+}
+
+}
+
+
+This new class replaces the shouldDecodeNodes field, getter, and setter with a StringNodeParsingOption field and its getter and setter:
+
+public class Parser....
+  
+private StringNodeParsingOption stringNodeParsingOption =
+    
+new StringNodeParsingOption();
+
+  
+
+private boolean shouldDecodeNodes = false;
+
+  
+
+public void setNodeDecoding(boolean shouldDecodeNodes) {
+    
+
+this.shouldDecodeNodes = shouldDecodeNodes;
+  
+
+}
+
+  
+
+public boolean shouldDecodeNodes() {
+    
+
+return shouldDecodeNodes;
+  
+
+}
+
+  
+public StringNodeParsingOption getStringNodeParsingOption() {
+    
+return stringNodeParsingOption;
+  
+}
+
+  
+public void setStringNodeParsingOption(StringNodeParsingOption option) {
+    
+stringNodeParsingOption = option;
+  
+}
+
+
+Parser clients now turn StringNode decoding on by instantiating and configuring a StringNodeParsingOption instance and passing it to the parser:
+
+class DecodingNodeTest...
+  public void testDecodeAmpersand() {
+    ...
+    
+StringNodeParsingOption decodeNodes =
+      
+new StringNodeParsingOption();
+    
+decodeNodes.setDecodeStringNodes(true);
+    parser.
+setStringNodeParsingOption(decodeNodes);
+    
+
+parser.setNodeDecoding(true);
+    ...
+  }
+
+The StringParser now obtains the state of the StringNode decoding option by means of the new class:
+
+public class StringParser...
+  ...
+  public Node find(...) {
+    NodeFactory nodeFactory = new NodeFactory();
+    return nodeFactory.createStringNode(
+      textBuffer,
+      textBegin,
+      textEnd,
+      parser.
+getStringNodeParsingOption().shouldDecodeStringNodes()
+    );
+  }
+
+b. Now I apply Inline Class [F] to merge NodeFactory with StringNodeParsing-Option. This leads to the following changes in StringParser:
+
+public class StringParser...
+  public Node find(...) {
+    ...
+    return parser.
+getStringNodeParsingOption().createStringNode(
+      textBuffer, textBegin, textEnd
+
+,
+      
+
+parser.getStringNodeParsingOption().shouldDecodeStringNodes()
+   );
+  }
+
+And the following changes in StringNodeParsingOption:
+
+public class StringNodeParsingOption...
+  private boolean decodeStringNodes;
+  
+public Node createStringNode(
+    
+StringBuffer textBuffer, int textBegin, int textEnd
+, boolean shouldDecode) {
+    
+if (decodeStringNodes)
+    
+return new DecodingStringNode(
+      
+new StringNode(textBuffer, textBegin, textEnd));
+    
+return new StringNode(textBuffer, textBegin, textEnd);
+  
+}
+}
+
+c. The final step is to rename the class StringNodeParsingOption to NodeFactory and then perform a similar renaming on the NodeFactory field, getter, and setter in Parser:
+
+public class 
+
+StringNodeParsingOption 
+NodeFactory...
+
+public class Parser...
+  
+private NodeFactory nodeFactory = new NodeFactory();
+
+  
+public NodeFactory getNodeFactory() {
+    
+return nodeFactory;
+  
+}
+
+  
+public void setNodeFactory(NodeFactory nodeFactory) {
+    
+this.nodeFactory = nodeFactory;
+  
+}
+
+
+And that does it. NodeFactory has helped tame creation sprawl by handling the work associated with instantiating and configuring StringNode objects.

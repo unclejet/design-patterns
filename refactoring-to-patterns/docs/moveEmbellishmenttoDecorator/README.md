@@ -544,3 +544,126 @@ super.toPlainTextString());
    }
 
 StringNode currently has no trace of the type code shouldDecode, and the conditional decoding logic in toPlainTextString() has been replaced with polymorphism.
+
+## step 3
+The next step is to apply the refactoring Replace Inheritance with Delegation [F]. That refactoring's mechanics tell me to begin by creating a field in the subclass, DecodingNode, that refers to itself:
+
+public class DecodingNode extends StringNode...3.
+
+private Node delegate = this
+
+
+I make delegate's type be Node rather than DecodingNode because DecodingNode will soon be a Decorator and that which it decorates (and delegates to) must implement the same interface as it does (i.e., Node).
+
+I now replace direct calls to inherited StringNode methods to make them use delegation. The only DecodingNode method that makes a call to a superclass method is toPlainTextString():
+
+public class DecodingNode extends StringNode...
+   public String toPlainTextString() {
+      return Translate.decode(super.toPlainTextString());
+   }
+
+I change this call to use the new field, delegate:
+
+public class DecodingNode extends StringNode...
+   public String toPlainTextString() {
+      return Translate.decode(
+delegate.toPlainTextString());
+   }
+
+I compile and test to see whether this still works. It doesn't! It gets the code into an infinite loop. I then notice that Martin mentions this in a note on the mechanics for Replace Inheritance with Delegation:
+
+You won't be able to replace any methods that invoke a method on super that is defined on the subclass, or they may get into an infinite recurse. These methods can be replaced only after you have broken inheritance. [F, 353]
+
+So I undo that last step and press on with the refactoring. My next step is to break inheritance, that is, to make DecodingNode no longer a subclass of StringNode. During this step I must also make delegate point to a real instance of StringNode:
+
+public class DecodingNode 
+
+extends StringNode ...
+   private Node delegate 
+
+= this;
+
+   public DecodingNode(StringBuffer textBuffer, int textBegin, int textEnd) {
+      
+delegate = new StringNode(textBuffer, textBegin, textEnd);
+   }
+
+My compiler is happy with this code, but the following code in StringNode no longer compiles:
+
+public class StringNode extends AbstractNode...
+   public static Node createStringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+
+      if (shouldDecode)
+         return new DecodingNode(textBuffer, textBegin, textEnd);
+      return new StringNode(textBuffer, textBegin, textEnd);
+   }
+
+The problem is that createStringNode wants to return objects that implement the Node interface, and DecodingNode no longer implements that interface. I solve this by making DecodingNode implement Node:
+
+public class DecodingNode 
+implements Node...
+   private Node delegate;
+
+   public DecodingNode(StringBuffer textBuffer, int textBegin, int textEnd) {
+      delegate = new StringNode(textBuffer, textBegin, textEnd);
+   }
+
+   public String toPlainTextString() {
+      return Translate.decode(delegate.toPlainTextString());
+   }
+
+   
+public void accept(NodeVisitor visitor) {
+   
+}
+
+   
+public void collectInto(NodeList collectionList, Class nodeType) {
+   
+}
+
+   
+// etc.
+
+
+The final step of Replace Inheritance with Delegation involves having each of the methods I've just added to DecodingNode—methods defined by Node—call the corresponding methods on delegate:
+
+public class DecodingNode implements Node...
+
+   public void accept(NodeVisitor visitor) {
+      
+delegate.accept(visitor);
+   }
+
+   public void collectInto(NodeList collectionList, Class nodeType) {
+      
+delegate.collectInto(collectionList, nodeType);
+   }
+
+   // etc.
+
+## step 4
+ DecodingNode is now almost a Decorator. The one thing preventing it from being an actual Decorator is that the field that it delegates to, delegate, is instantiated inside DecodingNode rather then being passed in via a constructor argument. To fix that, I apply Extract Parameter (346) and Remove Parameter [F] (to remove unnecessary parameters). I make the following changes to implement those refactorings:
+
+public class StringNode extends AbstractNode...
+   public static Node createStringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      if (shouldDecode)
+         return new DecodingNode(
+new StringNode(textBuffer, textBegin, textEnd));
+      return new StringNode(textBuffer, textBegin, textEnd);
+   }
+
+public class DecodingNode implements Node...
+   private Node delegate;
+
+   public DecodingNode(
+Node newDelegate) {
+      delegate = 
+newDelegate;
+   }
+
+DecodingNode is now a full-fledged Decorator. The following diagram shows how it fits into the Node hierarchy.
+
+![R2P](Screenshot from 2020-10-11 10-44-09.png)

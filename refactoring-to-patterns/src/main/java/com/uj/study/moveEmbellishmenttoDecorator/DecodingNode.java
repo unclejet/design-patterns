@@ -7,13 +7,29 @@ package com.uj.study.moveEmbellishmenttoDecorator;
  * @modified By：
  * @version:
  */
-public class DecodingNode extends StringNode {
-    public DecodingNode(String text) {
-        super(text);
+public class DecodingNode implements Node {
+    private Node delegate;
+
+    public DecodingNode(Node newDelegate) {
+        delegate = newDelegate;
     }
 
     @Override
+    public String toHtml() {
+        return delegate.toHtml();
+    }
+
     public String toPlainTextString() {
-        return Translate.decode(super.toPlainTextString());
+        return Translate.decode(delegate.toPlainTextString());
+    }
+
+    @Override
+    public String getText() {
+        return delegate.getText();
+    }
+
+    @Override
+    public void setText(String text) {
+        delegate.setText(text);
     }
 }

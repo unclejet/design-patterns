@@ -17,17 +17,12 @@ public class StringNode extends AbstractNode {
 
     public static Node createStringNode(String text,  boolean shouldDecode) {
         if (shouldDecode)
-            return new DecodingNode(text);
+            return new DecodingNode(new StringNode(text));
         return new StringNode(text);
     }
 
     /**
      * 用于演示boolean的条件越来越多对代码的影响越来越大
-     * @param textBuffer
-     * @param textBegin
-     * @param textEnd
-     * @param shouldDecode
-     * @param shouldRemoveEscapeCharacters
      */
 //    private StringNode(StringBuffer textBuffer, int textBegin, int textEnd,
 //

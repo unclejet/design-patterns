@@ -254,4 +254,293 @@ The following diagram illustrates where StringNode fits into the Node hierarchy 
 
 Here are the steps for refactoring StringNode's decoding logic to a Decorator.
 
+## step 1
+My first step is to identify or create an enclosure type, a class or interface that declares all public methods of StringNode and whatever public methods it inherits. A good enclosure type won't contain fields (i.e., state). So StringNode's superclass, AbstractNode, is not a good enclosure type because it contains the two primitive int fields, nodeBegin and nodeEnd. Why does it matter whether a class contains fields? Decorators add behavior to the objects they decorate, but they don't need duplicate copies of the fields in those objects. In this case, because StringNode already inherits nodeBegin and nodeEnd from AbstractNode, Decorators of StringNode don't also need to inherit those fields.
 
+So I rule out AbstractNode as the enclosure type. The next natural place to look is the interface that AbstractNode implements, which is called Node. The following diagram shows this interface.
+
+![R2P](Screenshot from 2020-10-11 10-08-19.png)
+
+This would be the perfect enclosure type, except that it doesn't include StringNode's two public methods, getText() and setText(…). I must add these methods to the Node interface in order to pave the way for creating a transparent enclosure for StringNode. I'm not happy about this step, for it means expanding the interface of Node just to accommodate this refactoring. However, I proceed anyway, knowing that a future refactoring will combine toPlainTextString() and getText(), thereby reducing the size of the Node interface.
+
+In Java, adding the getText() and setText(…) methods to the Node interface means that all concrete classes that implement Node must implement getText() and setText(…) or inherit implementations of them. StringNode contains the implementations of getText() and setText(…), but AbstractNode and some of its subclasses (which aren't shown in this example) have no such implementation (or have only one of the two methods defined). To obtain the solution I need, I must apply the refactoring Unify Interfaces (343). This refactoring adds getText() and setText(…) to Node and outfits AbstractNode with the following default (do-nothing) versions of the methods, which all subclasses either inherit and/or override:
+
+public abstract class AbstractNode...
+   
+public String getText() {
+      
+return null;
+   
+}
+
+   
+public void setText(String text) {
+   
+}
+
+
+## step 2
+I can now work towards replacing the decoding embellishment inside StringNode by applying the refactoring Replace Conditional with Polymorphism [F]. Applying that refactoring involves producing an inheritance structure that will look like the one shown here.
+
+![R2P](Screenshot from 2020-10-11 10-12-17.png)
+
+To produce this inheritance structure, I apply Replace Type Code with Subclasses [F]. The first step in implementing that refactoring is to apply Self-Encapsulate Field [F] on shouldDecode, the type code inside StringNode. The following code shows where shouldDecode is referenced or used within StringNode:
+
+public class StringNode extends AbstractNode...
+   
+private boolean shouldDecode = false;
+
+   public StringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      this(textBuffer, textBegin, textEnd);
+      
+this.shouldDecode = shouldDecode;
+   }
+
+   public String toPlainTextString() {
+      String result = textBuffer.toString();
+      if 
+(shouldDecode)
+         result = Translate.decode(result);
+      return result;
+   }
+
+To self-encapsulate shouldDecode, I make the following changes:
+
+public class StringNode extends AbstractNode...
+   public StringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      this(textBuffer, textBegin, textEnd);
+      
+setShouldDecode(shouldDecode);
+   }
+
+   public String toPlainTextString() {
+      String result = textBuffer.toString();
+      if (
+shouldDecode())
+         result = Translate.decode(result);
+      return result;
+   }
+
+   
+private void setShouldDecode(boolean shouldDecode) {
+      
+this.shouldDecode = shouldDecode;
+   
+}
+
+   
+private boolean shouldDecode() {
+      
+return shouldDecode;
+   
+}
+
+
+I've nearly self-encapsulated shouldDecode, except for the new StringNode constructor. Because it accepts the type code shouldDecode as a parameter, I need to replace this constructor with a Creation Method (as described in the mechanics to Replace Type Code with Subclasses [F]). The Decorator mechanics also tell me to make the return type of this Creation Method be Node, which is the enclosure type that will be vital to implementing the Decorator pattern. Here's the new Creation Method:
+
+public class StringNode extends AbstractNode...
+   
+private StringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      this(textBuffer, textBegin, textEnd);
+      setShouldDecode(shouldDecode);
+   }
+
+   public static Node createStringNode(
+      
+StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      
+return new StringNode(textBuffer, textBegin, textEnd, shouldDecode);
+   
+}
+
+
+And here is the updated client call to the new Creation Method:
+
+public class StringParser...
+   public 
+Node find(
+      NodeReader reader,String input,int position, boolean balance_quotes) {
+      ...
+      return 
+StringNode.createStringNode(
+         
+textBuffer, textBegin, textEnd, reader.getParser().shouldDecodeNodes());
+
+
+I compile and test to see that these changes didn't break anything. Now, the second step in the mechanics for Replace Type Code with Subclasses [F] says:
+
+For each value of the type code, create a subclass. Override the getting method of the type code in the subclass to return the relevant value. [F, 224]
+
+The type code, shouldDecode, has two values: TRue and false. I decide that StringNode itself will handle the false case (i.e., don't perform any decoding), while a new subclass called DecodingNode will handle the TRue case. I start by creating DecodingNode and overriding the shouldDecode() method (which I now make protected):
+
+public class StringNode extends AbstractNode...
+   
+protected boolean shouldDecode()...
+
+
+public class DecodingNode extends StringNode {
+   
+public DecodingNode(StringBuffer textBuffer, int textBegin, int textEnd) {
+      
+super(textBuffer, textBegin, textEnd);
+   
+}
+
+   
+protected boolean shouldDecode() {
+      
+return true;
+   
+}
+
+}
+
+
+I now need to alter the Creation Method to create the appropriate object based on the value of shouldDecode:
+
+public class StringNode extends AbstractNode...
+   private boolean shouldDecode = false;
+
+   public static Node createStringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      
+if (shouldDecode)
+         
+return new DecodingNode(textBuffer, textBegin, textEnd);
+      return new StringNode(textBuffer, textBegin, textEnd
+
+, shouldDecode);
+   }
+
+I compile and test to see that everything is still working.
+
+At this point I can simplify StringNode by removing the shouldDecode type code, its setting method, and the constructor that accepts it. All I have to do to make this work is to return false from StringNode's shouldDecode() method:
+
+public class StringNode extends AbstractNode...
+   
+
+private boolean shouldDecode = false;
+
+   public StringNode(StringBuffer textBuffer,int textBegin,int textEnd) {
+      super(textBegin,textEnd);
+      this.textBuffer = textBuffer;
+   }
+
+   
+
+private StringNode(
+      
+
+StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      
+
+this(textBuffer, textBegin, textEnd);
+      
+
+setShouldDecode(shouldDecode);
+   
+
+}
+
+   public static Node createStringNode(
+      StringBuffer textBuffer, int textBegin, int textEnd, boolean shouldDecode) {
+      if (shouldDecode)
+         return new DecodingNode(textBuffer, textBegin, textEnd);
+      return new StringNode(textBuffer, textBegin, textEnd);
+   }
+
+   
+
+private void setShouldDecode(boolean shouldDecode) {
+      
+
+this.shouldDecode = shouldDecode;
+   
+
+}
+
+   protected boolean shouldDecode() {
+      
+return false;
+   }
+
+Everything works fine after I compile and test. I've now successfully created an inheritance structure that will enable me to apply Replace Conditional with Polymorphism [F].
+
+I now want to rid StringNode of the conditional logic inside toPlainTextString(). Here's how the method looks before I make changes:
+
+public class StringNode extends AbstractNode...
+   public String toPlainTextString() {
+      String result = textBuffer.toString();
+      if (shouldDecode())
+         result = Translate.decode(result);
+      return result;
+   }
+
+My first step is to give DecodingNode an overriding version of toPlainTextString():
+
+public class DecodingNode extends StringNode...
+   
+public String toPlainTextString() {
+      
+return Translate.decode(textBuffer.toString());
+   
+}
+
+
+I compile and test to see that this minor change doesn't upset anything. Now I remove the logic that I had copied into DecodingNode from StringNode:
+
+public class StringNode extends AbstractNode...
+   public String toPlainTextString() {
+      
+return textBuffer.toString();
+      
+
+String result = textBuffer.toString();
+      
+
+if (shouldDecode())
+         
+
+result = Translate.decode(result);
+      
+
+return result;
+   }
+
+I can now safely delete the shouldDecode() method in both StringNode and DecodingNode:
+
+public class StringNode extends AbstractNode...
+   
+
+protected boolean shouldDecode() {
+      
+
+return false;
+   
+
+}
+
+public class DecodingNode extends StringNode...
+   
+
+protected boolean shouldDecode() {
+      
+
+return true;
+   
+
+}
+
+
+There is also a small amount of duplication in DecodingNode's toPlainTextString(): the call to textBuffer.toString() is identical to the call in StringNode's toPlainTextString(). I can remove this duplication by having DecodingNode call its superclass, as follows:
+
+public class DecodingNode extends StringNode...
+   public String toPlainTextString() {
+      return Translate.decode(
+super.toPlainTextString());
+   }
+
+StringNode currently has no trace of the type code shouldDecode, and the conditional decoding logic in toPlainTextString() has been replaced with polymorphism.

@@ -11,4 +11,8 @@ public interface Node {
     String toHtml();
 
     String toPlainTextString();
+
+    String getText();
+
+    void setText(String text);
 }

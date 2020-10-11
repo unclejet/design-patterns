@@ -7,18 +7,18 @@ package com.uj.study.moveEmbellishmenttoDecorator;
  * @modified By：
  * @version:
  */
-public class StringNode implements Node {
+public class StringNode extends AbstractNode {
     private String text;
-    private boolean shouldDecode = false;
     private boolean shouldRemoveEscapeCharacters = false;
 
     public StringNode(String text) {
         this.text = text;
     }
 
-    public StringNode(String text,  boolean shouldDecode) {
-        this.text = text;
-        this.shouldDecode = shouldDecode;
+    public static Node createStringNode(String text,  boolean shouldDecode) {
+        if (shouldDecode)
+            return new DecodingNode(text);
+        return new StringNode(text);
     }
 
     /**
@@ -29,22 +29,19 @@ public class StringNode implements Node {
      * @param shouldDecode
      * @param shouldRemoveEscapeCharacters
      */
-    public StringNode(StringBuffer textBuffer, int textBegin, int textEnd,
+//    private StringNode(StringBuffer textBuffer, int textBegin, int textEnd,
+//
+//                      boolean shouldDecode, boolean shouldRemoveEscapeCharacters) {
+//        this(textBuffer, textBegin, textEnd);
+//        setShouldDecode(shouldDecode);
+//        this.shouldRemoveEscapeCharacters = shouldRemoveEscapeCharacters;
+//    }
 
-                      boolean shouldDecode, boolean shouldRemoveEscapeCharacters) {
-        this(textBuffer, textBegin, textEnd);
-        this.shouldDecode = shouldDecode;
-        this.shouldRemoveEscapeCharacters = shouldRemoveEscapeCharacters;
-    }
-
-    public StringNode(StringBuffer textBuffer, int textBegin, int textEnd) {
-    }
-
+//    private StringNode(StringBuffer textBuffer, int textBegin, int textEnd) {
+//    }
 
     public String toPlainTextString() {
-        if (shouldDecode) {
-            return Translate.decode(text);
-        }
+        //if I extract RemoveEscapeCharactersNode like DecodingNode, then next 2 lines also can deleted.
         if (shouldRemoveEscapeCharacters)
             return ParserUtils.removeEscapeCharacters(text);
         return text;

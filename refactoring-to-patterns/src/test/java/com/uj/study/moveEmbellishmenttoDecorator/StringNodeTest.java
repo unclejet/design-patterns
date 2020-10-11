@@ -46,12 +46,12 @@ class StringNodeTest {
     }
 
     private void createParser(String text) {
-        StringNode stringNode = new StringNode(text);
+        Node stringNode = new StringNode(text);
         parser.addNode(stringNode);
     }
 
     private void addStringNode(String text) {
-        StringNode stringNode = new StringNode(text, parser.isShouldDecodeNodes());
+        Node stringNode = StringNode.createStringNode(text, parser.isShouldDecodeNodes());
         parser.addNode(stringNode);
     }
 

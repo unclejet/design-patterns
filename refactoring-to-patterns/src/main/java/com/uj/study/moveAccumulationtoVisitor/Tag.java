@@ -7,12 +7,13 @@ package com.uj.study.moveAccumulationtoVisitor;
  * @modified By：
  * @version:
  */
-public class Tag {
+public class Tag implements Node {
     public String getTagName() {
         return null;
     }
 
-    public void accept(TextExtractor textExtractor) {
-        textExtractor.visitTag(this);
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitTag(this);
     }
 }

@@ -7,7 +7,7 @@ package com.uj.study.moveAccumulationtoVisitor;
  * @modified By：
  * @version:
  */
-public class LinkTag {
+public class LinkTag extends Tag {
     public String getLinkText() {
         return null;
     }
@@ -16,7 +16,8 @@ public class LinkTag {
         return null;
     }
 
-    public void accept(TextExtractor textExtractor) {
-        textExtractor.visitLinkTag(this);
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitLinkTag(this);
     }
 }

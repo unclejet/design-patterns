@@ -8,4 +8,5 @@ package com.uj.study.moveAccumulationtoVisitor;
  * @version:
  */
 public interface Node {
+    void accept(NodeVisitor nodeVisitor);
 }

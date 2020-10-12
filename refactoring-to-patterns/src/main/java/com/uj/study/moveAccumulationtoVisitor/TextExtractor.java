@@ -8,7 +8,7 @@ package com.uj.study.moveAccumulationtoVisitor;
  * @modified By：
  * @version:
  */
-public class TextExtractor {
+public class TextExtractor implements NodeVisitor {
     private Parser parser;
 
     private boolean isPreTag;
@@ -22,19 +22,12 @@ public class TextExtractor {
 
         for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
             node = e.nextNode();
-            if (node instanceof StringNode) {
-                ((StringNode) node).accept(this);
-            } else if (node instanceof LinkTag) {
-                ((LinkTag) node).accept(this);
-            } else if (node instanceof EndTag) {
-                ((EndTag) node).accept(this);
-            } else if (node instanceof Tag) {
-                ((Tag) node).accept(this);
-            }
+            node.accept(this);
         }
         return (results.toString());
     }
 
+    @Override
     public void visitTag(Tag node) {
         Tag tag = node;
         String tagName = tag.getTagName();
@@ -44,6 +37,7 @@ public class TextExtractor {
             isScriptTag = true;
     }
 
+    @Override
     public void visitEndTag(EndTag node) {
         EndTag endTag = node;
         String tagName = endTag.getTagName();
@@ -53,6 +47,7 @@ public class TextExtractor {
             isScriptTag = false;
     }
 
+    @Override
     public void visitLinkTag(LinkTag node) {
         LinkTag link = node;
         if (isPreTag)
@@ -66,6 +61,7 @@ public class TextExtractor {
         }
     }
 
+    @Override
     public void visitStringNode(StringNode node) {
         if (!isScriptTag) {
             StringNode stringNode = node;

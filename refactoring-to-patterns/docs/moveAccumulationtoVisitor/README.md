@@ -429,3 +429,71 @@ stringNode.accept(this);
 
 
 I compile and test to confirm that all is well.
+
+## step 6-9
+At this point, I want extractText() to call accept() polymorphically, rather than having to type-cast node to call the appropriate accept() method for each accumulation source. To make that possible, I apply Unify Interfaces (343) on the superclass and associated interface for StringNode, LinkTag, Tag, and EndTag:
+
+public interface Node...
+   
+public void accept(TextExtractor textExtractor);
+
+public abstract class AbstractNode implements Node...
+   
+public void accept(TextExtractor textExtractor) {
+   
+}
+
+
+7. Now I can change extractText() to call the accept() method polymorphically:
+
+public class TextExtractor...
+   public String extractText()
+      ...
+      for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
+         node = e.nextNode();
+         
+node.accept(this);
+      }
+
+Compiling and testing confirms that everything is working.
+
+8. At this point, I extract a visitor interface from TextExtractor like so:
+
+
+
+public interface NodeVisitor {
+   
+public abstract void visitTag(Tag tag);
+   
+public abstract void visitEndTag(EndTag endTag);
+   
+public abstract void visitLinkTag(LinkTag link);
+   
+public abstract void visitStringNode(StringNode stringNode);
+
+}
+
+public class TextExtractor 
+implements NodeVisitor...
+
+9. The final step is to change every accept() method so it takes a NodeVisitor argument rather than a TextExTRactor:
+
+public interface Node...
+   public void accept(
+NodeVisitor nodeVisitor);
+
+public abstract class AbstractNode implements Node...
+   public void accept(
+NodeVisitor nodeVisitor) {
+   }
+
+public class StringNode extends AbstractNode...
+   public void accept(
+NodeVisitor nodeVisitor) {
+      
+nodeVisitor.visitStringNode(this);
+   }
+
+// etc.
+
+I compile and test to confirm that TextExtractor now works beautifully as a Visitor. This refactoring has paved the way for additional refactorings to Visitor in the parser, none of which I will do without first taking a nice, long break.

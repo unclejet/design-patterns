@@ -7,12 +7,13 @@ package com.uj.study.moveAccumulationtoVisitor;
  * @modified By：
  * @version:
  */
-public class StringNode {
+public class StringNode implements Node {
     public String getText() {
         return null;
     }
 
-    public void accept(TextExtractor textExtractor) {
-        textExtractor.visitStringNode(this);
+    @Override
+    public void accept(NodeVisitor nodeVisitor) {
+        nodeVisitor.visitStringNode(this);
     }
 }

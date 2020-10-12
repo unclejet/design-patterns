@@ -144,3 +144,120 @@ Is the existing code sufficient?
 I quickly determine that I cannot accumulate data from the nodes by using one common accumulation method. For instance, the code gathers either all of a LinkTag's text or just its link (i.e., URL) by calling two different methods. I also determine that there is no easy way to avoid all of the instanceof calls and type-casts without moving to a Visitor implementation. Is it worth it? I determine that it is because other areas in the parser and client code could also be improved by using a Visitor.
 
 Before beginning the refactoring, I must decide whether it makes sense for the TextExTRactor class to play the role of Visitor or whether to extract a class from it that will play the Visitor role. In this case, because TextExtractor performs only the single responsibility of text extraction, I decide that it will make a perfectly good Visitor. Having made my choice, I proceed with the refactoring.
+
+## step 1
+The accumulation method, extractText(), contains three local variables referenced across multiple legs of a conditional statement. I convert these local variables into TextExtractor fields:
+
+public class TextExtractor...
+   
+private boolean isPreTag;
+   
+private boolean isScriptTag;
+   
+private StringBuffer results;
+
+   public String extractText()...
+      
+
+boolean isPreTag = false;
+      
+
+boolean isScriptTag = false;
+      
+
+StringBuffer results = new StringBuffer();
+      ...
+
+I compile and test to confirm that the changes work.
+
+## step 2
+Now I apply Extract Method [F] on the first chunk of accumulation code for the StringNode type:
+
+public class TextExtractor...
+   public String extractText()...
+      ...
+      for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
+         node = e.nextNode();
+         if (node instanceof StringNode) {
+            
+accept(node);
+         } else if (...
+
+
+   
+private void accept(Node node) {
+      
+if (!isScriptTag) {
+         
+StringNode stringNode = (StringNode) node;
+         
+if (isPreTag)
+            
+results.append(stringNode.getText());
+         
+else {
+            
+String text = Translate.decode(stringNode.getText());
+            
+if (getReplaceNonBreakingSpace())
+               
+text = text.replace('\a0', ' ');
+            
+if (getCollapse())
+               
+collapse(results, text);
+            
+else
+               
+results.append(text);
+         
+}
+      
+}
+   
+}
+
+
+The accept() method currently type-casts its node argument to a StringNode. I will be creating accept() methods for each of the accumulation sources, so I must customize this one to accept an argument of type StringNode:
+
+public class TextExtractor...
+   public String extractText()...
+      ...
+      for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
+         node = e.nextNode();
+         if (node instanceof StringNode) {
+            accept(
+(StringNode)node);
+         } else if (...
+
+   private void accept(
+StringNode stringNode)...
+      if (!isScriptTag) {
+         
+
+StringNode stringNode = (StringNode) node;
+         ...
+
+After compiling and testing, I repeat this step for all other accumulation sources. This yields the following code:
+
+public class TextExtractor...
+   public String extractText()...
+
+      for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
+         node = e.nextNode();
+         if (node instanceof StringNode) {
+            
+accept((StringNode)node);
+         } else if (node instanceof LinkTag) {
+            
+accept((LinkTag)node);
+         } else if (node instanceof EndTag) {
+            
+accept((EndTag)node);
+         } else if (node instanceof Tag) {
+            
+accept((Tag)node);
+         }
+      }
+      return (results.toString());
+   }

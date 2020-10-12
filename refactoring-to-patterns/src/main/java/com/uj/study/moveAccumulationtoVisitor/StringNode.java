@@ -11,4 +11,8 @@ public class StringNode {
     public String getText() {
         return null;
     }
+
+    public void accept(TextExtractor textExtractor) {
+        textExtractor.visitStringNode(this);
+    }
 }

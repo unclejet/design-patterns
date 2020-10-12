@@ -15,4 +15,8 @@ public class LinkTag {
     public String getLink() {
         return null;
     }
+
+    public void accept(TextExtractor textExtractor) {
+        textExtractor.visitLinkTag(this);
+    }
 }

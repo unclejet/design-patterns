@@ -261,3 +261,171 @@ accept((Tag)node);
       }
       return (results.toString());
    }
+
+
+## step 3
+Now I apply Extract Method [F] on the body of the accept(StringNode stringNode) method to produce a visitStringNode() method:
+
+public class TextExtractor...
+   private void accept(StringNode stringNode) {
+      
+visitStringNode(stringNode);
+   }
+
+   
+private void visitStringNode(StringNode stringNode) {
+      
+if (!isScriptTag) {
+         
+if (isPreTag)
+            
+results.append(stringNode.getText());
+         
+else {
+            
+String text = Translate.decode(stringNode.getText());
+            
+if (getReplaceNonBreakingSpace())
+               
+text = text.replace('\a0', ' ');
+            
+if (getCollapse())
+               
+collapse(results, text);
+            
+else
+               
+results.append(text);
+         
+}
+      
+}
+   
+}
+
+
+After compiling and testing, I repeat this step for all of the accept() methods, yielding the following:
+
+public class TextExtractor...
+   private void accept(Tag tag) {
+      
+visitTag(tag);
+   }
+   
+private void visitTag(Tag tag)...
+
+   private void accept(EndTag endTag) {
+      
+visitEndTag(endTag);
+   }
+   
+private void visitEndTag(EndTag endTag)...
+
+   private void accept(LinkTag link) {
+      
+visitLink(link);
+   }
+   
+private void visitLink(LinkTag link)...
+
+   private void accept(StringNode stringNode) {
+      
+visitStringNode(stringNode);
+   }
+   
+private void visitStringNode(StringNode stringNode)...
+
+## step4
+Next, I apply Move Method [F] to move every accept() method to the accumulation source with which it is associated. For example, the following method:
+
+public class TextExtractor...
+   private void accept(StringNode stringNode) {
+      visitStringNode(stringNode);
+   }
+
+is moved to StringNode:
+
+public class StringNode...
+   
+public void accept(TextExtractor textExtractor) {
+      
+textExtractor.visitStringNode(this);
+   
+}
+
+
+and adjusted to call StringNode like so:
+
+public class TextExtractor...
+   private void accept(StringNode stringNode) {
+      
+stringNode.accept(this);
+   }
+
+This transformation requires modifying TextExtractor so its visitStringNode(…) method is public. Once I compile and test that the new code works, I repeat this step to move the accept() methods for Tag, EndTag, and Link to those classes.
+
+## step 5
+Now I can apply Inline Method [F] on every call to accept() within exTRactText():
+
+public class TextExtractor...
+   public String extractText()...
+      for (NodeIterator e = parser.elements(); e.hasMoreNodes();) {
+         node = e.nextNode();
+         if (node instanceof StringNode) {
+            
+((StringNode)node).accept(this);
+         } else if (node instanceof LinkTag) {
+            
+((LinkTag)node).accept(this);
+         } else if (node instanceof EndTag) {
+            
+((EndTag)node).accept(this);
+         } else if (node instanceof Tag) {
+            
+((Tag)node).accept(this);
+         }
+      }
+      return (results.toString());
+   }
+
+   
+
+private void accept(Tag tag) {
+      
+
+tag.accept(this);
+      
+
+}
+   
+
+private void accept(EndTag endTag) {
+      
+
+endTag.accept(this);
+   
+
+}
+
+   
+
+private void accept(LinkTag link) {
+      
+
+link.accept(this);
+   
+
+}
+
+   
+
+private void accept(StringNode stringNode) {
+      
+
+stringNode.accept(this);
+   
+
+}
+
+
+I compile and test to confirm that all is well.

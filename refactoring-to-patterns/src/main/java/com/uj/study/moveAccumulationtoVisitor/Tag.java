@@ -11,4 +11,8 @@ public class Tag {
     public String getTagName() {
         return null;
     }
+
+    public void accept(TextExtractor textExtractor) {
+        textExtractor.visitTag(this);
+    }
 }

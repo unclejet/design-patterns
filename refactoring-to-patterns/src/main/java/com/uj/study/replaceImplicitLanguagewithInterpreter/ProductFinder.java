@@ -20,15 +20,17 @@ public class ProductFinder {
     }
 
     public List byColor(Color colorOfProductToFind) {
+        ColorSpec spec = new ColorSpec(colorOfProductToFind);
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();
         while (products.hasNext()) {
             Product product = (Product) products.next();
-            if (product.getColor().equals(colorOfProductToFind))
+            if (spec.isSatisfiedBy(product))
                 foundProducts.add(product);
         }
         return foundProducts;
     }
+
     public List byPrice(float priceLimit) {
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();

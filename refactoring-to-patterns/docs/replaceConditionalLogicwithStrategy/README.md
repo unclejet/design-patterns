@@ -521,3 +521,136 @@ public abstract class CapitalStrategy {
 }
 
 And that does it for this refactoring. Capital calculations, which include duration calculations, are now performed using several concrete strategies.
+
+## step 1
+he first step is to find an object selection method that relies on a criterion argument for its selection logic. The ProductFinder method byColor(Color colorOfProductToFind) meets this requirement:
+
+public class ProductFinder...
+   public List byColor(Color colorOfProductToFind) {
+      List foundProducts = new ArrayList();
+      Iterator products = repository.iterator();
+      while (products.hasNext()) {
+         Product product = (Product) products.next();
+         if (product.getColor().equals(colorOfProductToFind))
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+I create a concrete specification class for the criterion argument, Color colorOfProductToFind. I call this class ColorSpec. It needs to hold onto a Color field and provide a getter method for it:
+
+
+
+public class ColorSpec {
+   
+private Color colorOfProductToFind;
+
+   
+public ColorSpec(Color colorOfProductToFind) {
+      
+this.colorOfProductToFind = colorOfProductToFind;
+   
+}
+
+   
+public Color getColorOfProductToFind() {
+      
+return colorOfProductToFind;
+   
+}
+
+}
+
+
+Now I can add a variable of type ColorSpec to the byColor(…) method and replace the reference to the parameter, colorOfProductToFind, with a reference to the specification's getter method:
+
+public List byColor(Color colorOfProductToFind) {
+   
+ColorSpec spec = new ColorSpec(colorOfProductToFind);
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product) products.next();
+      if (product.getColor().equals(
+spec.getColorOfProductToFind()))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+After these changes, I compile and run my tests. Here's one such test:
+
+public void testFindByColor() {
+   List foundProducts = finder.byColor(Color.red);
+   assertEquals("found 2 red products", 2, foundProducts.size());
+   assertTrue("found fireTruck", foundProducts.contains(fireTruck));
+   assertTrue("found Toy Porsche Convertible", foundProducts.contains(toyConvertible));
+
+}
+
+## step 2
+Now I'll apply Extract Method [F] to extract the conditional statement in the while loop to an isSatisfiedBy(…) method:
+
+public List byColor(Color colorOfProductToFind) {
+   ColorSpec spec = new ColorSpec(colorOfProductToFind);
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product) products.next();
+      if (
+isSatisfiedBy(spec, product))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+
+private boolean isSatisfiedBy(ColorSpec spec, Product product) {
+   
+return product.getColor().equals(spec.getColorOfProductToFind());
+
+}
+
+
+The isSatisfiedBy(…) method can now be moved to ColorSpec by applying Move Method [F]:
+
+public class ProductFinder...
+   public List byColor(Color colorOfProductToFind) {
+      ColorSpec spec = new ColorSpec(colorOfProductToFind);
+      List foundProducts = new ArrayList();
+      Iterator products = repository.iterator();
+      while (products.hasNext()) {
+         Product product = (Product) products.next();
+         if (
+spec.isSatisfiedBy(product))
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+public class ColorSpec...
+   
+boolean isSatisfiedBy(Product product) {
+      
+return product.getColor().equals(getColorOfProductToFind());
+   
+}
+
+
+Finally, I create a specification superclass by applying Extract Superclass [F] on ColorSpec:
+
+
+
+public abstract class Spec {
+   
+public abstract boolean isSatisfiedBy(Product product);
+
+}
+
+
+I make ColorSpec extend this class:
+
+public class ColorSpec 
+extends Spec...
+
+I compile and test to see that Product instances can still be selected by a given color correctly. Everything works fine.

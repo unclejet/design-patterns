@@ -19,18 +19,7 @@ public class ProductFinder {
         this.repository = repository;
     }
 
-    public List byColor(Color colorOfProductToFind) {
-        ColorSpec spec = new ColorSpec(colorOfProductToFind);
-        List foundProducts = new ArrayList();
-        Iterator products = repository.iterator();
-        while (products.hasNext()) {
-            Product product = (Product) products.next();
-            if (spec.isSatisfiedBy(product))
-                foundProducts.add(product);
-        }
-        return foundProducts;
-    }
-
+    //if create priceSpec, then can refactor this method.
     public List byPrice(float priceLimit) {
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();
@@ -46,23 +35,20 @@ public class ProductFinder {
         ColorSpec colorSpec = new ColorSpec(color);
         BelowPriceSpec priceSpec = new BelowPriceSpec(price);
         SizeSpec sizeSpec = new SizeSpec(size);
-        AndSpec spec1 = new AndSpec(new AndSpec(colorSpec, sizeSpec), priceSpec);
-        List foundProducts = new ArrayList();
-        Iterator products = repository.iterator();
-        while (products.hasNext()) {
-            Product product = (Product) products.next();
-            if (spec1.isSatisfiedBy(product))
-                foundProducts.add(product);
-        }
-        return foundProducts;
+        AndSpec spec = new AndSpec(new AndSpec(colorSpec, sizeSpec), priceSpec);
+        return selectBy(spec);
     }
 
     public List belowPriceAvoidingAColor(float price, Color color) {
         AndSpec spec = new AndSpec(new BelowPriceSpec(price), new NotSpec(new ColorSpec(color)));
+        return selectBy(spec);
+    }
+
+    public List selectBy(Spec spec) {
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();
         while (products.hasNext()) {
-            Product product = (Product) products.next();
+            Product product = (Product)products.next();
             if (spec.isSatisfiedBy(product))
                 foundProducts.add(product);
         }

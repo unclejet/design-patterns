@@ -872,3 +872,93 @@ spec.isSatisfiedBy(product))
 }
 
 That takes care of the belowPriceAvoidingAColor(…) method. I continue replacing logic in the object selection methods until all of them use either one concrete specification or one composite specification.
+
+## step 5
+The bodies of all object selection methods are now identical, except for the specification creation logic:
+
+
+
+Spec spec = ...create some spec
+List foundProducts = new ArrayList();
+Iterator products = repository.iterator();
+while (products.hasNext()) {
+   Product product = (Product) products.next();
+   if (
+spec.isSatisfiedBy(product))
+      foundProducts.add(product);
+}
+return foundProducts;
+
+This means I can apply Extract Method [F] on everything except the specification creation logic in any object selection method to produce a selectBy(…) method. I decide to perform this step on the belowPrice(…) method:
+
+public List belowPrice(float price) {
+   BelowPriceSpec spec = new BelowPriceSpec(price);
+   return 
+selectBy(spec);
+}
+
+
+private List selectBy(ProductSpecification spec) {
+   
+List foundProducts = new ArrayList();
+   
+Iterator products = repository.iterator();
+   
+while (products.hasNext()) {
+      
+Product product = (Product)products.next();
+      
+if (spec.isSatisfiedBy(product))
+         
+foundProducts.add(product);
+   
+}
+   
+return foundProducts;
+
+}
+
+
+I compile and test to make sure this works. Now I make remaining ProductFinder object selection methods call the same selectBy(…) method. For example, here's the call to belowPriceAvoidingAColor(…):
+
+public List belowPriceAvoidingAColor(float price, Color color) {
+   ProductSpec spec =
+      new AndProduct(
+         new BelowPriceSpec(price),
+         new NotSpec(
+            new ColorSpec(color)
+         )
+      );
+   return 
+selectBy(spec);
+}
+
+## step 6
+Now every object selection method can be inlined using Inline Method [F]:
+
+public class ProductFinder...
+   
+
+public List byColor(Color colorOfProductToFind) {
+      
+
+ColorSpec spec = new ColorSpec(colorOfProductToFind));
+      
+
+return selectBy(spec);
+   
+
+}
+
+public class ProductFinderTests extends TestCase...
+   public void testFindByColor()...
+      
+
+List foundProducts = finder.byColor(Color.red);
+      
+ColorSpec spec = new ColorSpec(Color.red));
+      
+List foundProducts = finder.selectBy(spec);
+
+
+I compile and test to make sure that everything's working. Then I conclude this refactoring by repeating step 6 for every object selection method.

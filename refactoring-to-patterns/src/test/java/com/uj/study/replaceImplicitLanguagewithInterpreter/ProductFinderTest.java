@@ -58,7 +58,8 @@ class ProductFinderTest {
 
     @Test
     public void testFindByColor() {
-        List foundProducts = finder.byColor(Color.red);
+        ColorSpec spec = new ColorSpec(Color.red);
+        List foundProducts = finder.selectBy(spec);
         assertEquals(2, foundProducts.size(), "found 2 red products");
         assertTrue(foundProducts.contains(fireTruck), "found fireTruck");
         assertTrue(foundProducts.contains(toyConvertible), "found Toy Porsche Convertible");

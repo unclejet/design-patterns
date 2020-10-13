@@ -718,3 +718,157 @@ priceSpec.isSatisfiedBy(product))
    }
    return foundProducts;
 }
+
+## step 4
+The byColorAndBelowPrice(…) method uses criteria (color and price) in its object selection logic. I'd like to make this method, and others like it, work with a composite specification rather than with individual specifications. To do that, I'll implement a modified version of step 1 and an unmodified version of step 2. Here's how byColorAndBelowPrice(…) looks after step 1:
+
+public List byColorAndBelowPrice(Color color, float price) {
+   ColorSpec colorSpec = new ColorSpec(color);
+   BelowPriceSpec priceSpec = new BelowPriceSpec(price);
+   
+AndSpec spec = new AndSpec(colorSpec, priceSpec);
+
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product)products.next();
+      if (
+spec.getAugend().isSatisfiedBy(product) &&
+         
+spec.getAddend().isSatisfiedBy(product))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+The AndSpec class looks like this:
+
+
+
+public class AndSpec {
+   
+private ProductSpecification augend, addend;
+
+   
+public AndSpec(Spec augend, Spec addend) {
+      
+this.augend = augend;
+      
+this.addend = addend;
+   
+}
+   
+public Spec getAddend() {
+      
+return addend;
+   
+}
+   
+public Spec getAugend() {
+      
+return augend;
+   
+}
+
+}
+
+
+After implementing step 2, the code now looks like this:
+
+public List byColorAndBelowPrice(Color color, float price) {
+   ...
+   AndSpec spec = new AndSpec(colorSpec, priceSpec);
+
+   while (products.hasNext()) {
+      Product product = (Product)products.next();
+      if (
+spec.isSatisfiedBy(product))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+public class AndSpec 
+extends Spec...
+   
+public boolean isSatisfiedBy(Product product) {
+      
+return getAugend().isSatisfiedBy(product) &&
+         
+getAddend().isSatisfiedBy(product);
+   
+}
+
+
+I now have a composite specification that handles an AND operation to join two concrete specifications. In another object selection method called belowPriceAvoidingAColor(…), I have more complicated conditional logic:
+
+public class ProductFinder...
+   public List belowPriceAvoidingAColor(float price, Color color) {
+      List foundProducts = new ArrayList();
+      Iterator products = repository.iterator();
+      while (products.hasNext()) {
+         Product product = (Product) products.next();
+         if (product.getPrice() < price && product.getColor() != color)
+            foundProducts.add(product);
+      }
+      return foundProducts;
+   }
+
+This code requires two composite specifications (AndProductSpecification and NotProductSpecification) and two concrete specifications. The conditional logic in the method can be portrayed as shown in the diagram on the following page.
+
+
+
+My first task is to produce a NotSpec:
+
+
+
+public class NotSpec extends Spec {
+   
+private Spec specToNegate;
+
+   
+public NotSpec(Spec specToNegate) {
+      
+this.specToNegate = specToNegate;
+   
+}
+   
+public boolean isSatisfiedBy(Product product) {
+      
+return !specToNegate.isSatisfiedBy(product);
+   
+}
+
+}
+
+
+Then I modify the conditional logic to use AndSpec and NotSpec:
+
+public List belowPriceAvoidingAColor(float price, Color color) {
+   
+AndSpec spec =
+      
+new AndSpec(
+         
+new BelowPriceSpec(price),
+         
+new NotSpec(
+            
+new ColorSpec(color)
+         
+)
+      
+);
+
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product) products.next();
+      if (
+spec.isSatisfiedBy(product))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+That takes care of the belowPriceAvoidingAColor(…) method. I continue replacing logic in the object selection methods until all of them use either one concrete specification or one composite specification.

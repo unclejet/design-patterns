@@ -46,24 +46,24 @@ public class ProductFinder {
         ColorSpec colorSpec = new ColorSpec(color);
         BelowPriceSpec priceSpec = new BelowPriceSpec(price);
         SizeSpec sizeSpec = new SizeSpec(size);
+        AndSpec spec1 = new AndSpec(new AndSpec(colorSpec, sizeSpec), priceSpec);
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();
         while (products.hasNext()) {
             Product product = (Product) products.next();
-            if (colorSpec.isSatisfiedBy(product) &&
-                    sizeSpec.isSatisfiedBy(product) &&
-                    priceSpec.isSatisfiedBy(product))
+            if (spec1.isSatisfiedBy(product))
                 foundProducts.add(product);
         }
         return foundProducts;
     }
 
     public List belowPriceAvoidingAColor(float price, Color color) {
+        AndSpec spec = new AndSpec(new BelowPriceSpec(price), new NotSpec(new ColorSpec(color)));
         List foundProducts = new ArrayList();
         Iterator products = repository.iterator();
         while (products.hasNext()) {
             Product product = (Product) products.next();
-            if (product.getPrice() < price && product.getColor() != color)
+            if (spec.isSatisfiedBy(product))
                 foundProducts.add(product);
         }
         return foundProducts;

@@ -654,3 +654,67 @@ public class ColorSpec
 extends Spec...
 
 I compile and test to see that Product instances can still be selected by a given color correctly. Everything works fine.
+
+## step 3
+Now I repeat steps 1 and 2 for similar object selection methods. This includes methods that work with criteria (i.e., multiple pieces of criterion). For example, the byColorAndBelowPrice(…) method accepts two arguments that act as criteria for selecting Product instances out of the repository:
+
+public List byColorAndBelowPrice(Color color, float price) {
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product)products.next();
+      if (product.getPrice() < price && product.getColor() == color)
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
+
+By implementing steps 1 and 2, I end up with the BelowPriceSpec class:
+
+
+
+public class BelowPriceSpec extends Spec {
+   
+private float priceThreshold;
+
+   
+public BelowPriceSpec(float priceThreshold) {
+      
+this.priceThreshold = priceThreshold;
+   
+}
+   
+public boolean isSatisfiedBy(Product product) {
+      
+return product.getPrice() < getPriceThreshold();
+   
+}
+   
+public float getPriceThreshold() {
+      
+return priceThreshold;
+   
+}
+
+}
+
+
+Now I can create a new version of byColorAndBelowPrice(…) that works with the two concrete specifications:
+
+public List byColorAndBelowPrice(Color color, float price) {
+   
+ColorSpec colorSpec = new ColorSpec(color);
+   
+BelowPriceSpec priceSpec = new BelowPriceSpec(price);
+   List foundProducts = new ArrayList();
+   Iterator products = repository.iterator();
+   while (products.hasNext()) {
+      Product product = (Product)products.next();
+      if (
+colorSpec.isSatisfiedBy(product) &&
+         
+priceSpec.isSatisfiedBy(product))
+         foundProducts.add(product);
+   }
+   return foundProducts;
+}
